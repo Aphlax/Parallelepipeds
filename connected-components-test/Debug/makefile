@@ -41,10 +41,10 @@ endif
 all: connected-components-test
 
 dependents:
-	-cd /home/gustavo/workspace/connected-components-root/connected-components/Debug && $(MAKE) all
+	-cd /home/gustavo/workspace/Parallelepipeds/connected-components/Debug && $(MAKE) clean all
 
 # Tool invocations
-connected-components-test: $(OBJS) $(USER_OBJS) /home/gustavo/workspace/connected-components-root/connected-components/Debug/connected-components
+connected-components-test: $(OBJS) $(USER_OBJS) /home/gustavo/workspace/Parallelepipeds/connected-components/Debug/connected-components
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
 	g++  -o "connected-components-test" $(OBJS) $(USER_OBJS) $(LIBS)
@@ -58,6 +58,6 @@ clean:
 
 .PHONY: all clean dependents
 .SECONDARY:
-/home/gustavo/workspace/connected-components-root/connected-components/Debug/connected-components:
+/home/gustavo/workspace/Parallelepipeds/connected-components/Debug/connected-components:
 
 -include ../makefile.targets

@@ -6,17 +6,17 @@
 CPP_SRCS += \
 ../src/RandomGraph.cpp \
 ../src/SerialConnectedComponents.cpp \
-../src/graph-generator-main.cpp 
+../src/main.cpp 
 
 OBJS += \
 ./src/RandomGraph.o \
 ./src/SerialConnectedComponents.o \
-./src/graph-generator-main.o 
+./src/main.o 
 
 CPP_DEPS += \
 ./src/RandomGraph.d \
 ./src/SerialConnectedComponents.d \
-./src/graph-generator-main.d 
+./src/main.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
