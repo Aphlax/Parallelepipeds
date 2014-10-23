@@ -18,7 +18,8 @@
 using namespace std;
 
 void generateAndSaveGraph(const string& fileName) {
-	ofstream myfile(fileName);
+	ofstream myfile(fileName.c_str());
+
 	if (!myfile.is_open()) throw std::runtime_error ("Unable to open file");
 
 	int connectivity = 10;
@@ -38,7 +39,7 @@ void generateAndSaveGraph(const string& fileName) {
  * Returns number of vertices. Filles edges vector.
  */
 int readGraphFile(const string& fileName, vector<pair<int, int> > &outEdges) {
-	ifstream myfile(fileName);
+	ifstream myfile(fileName.c_str());
 	if (!myfile.is_open()) throw std::runtime_error ("Unable to open file");
 
 	int vectorCount = -1;
