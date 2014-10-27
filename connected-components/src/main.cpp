@@ -8,6 +8,7 @@
 
 #include "RandomGraph.h"
 #include "SerialConnectedComponents.h"
+#include "BoostCC.h"
 
 #include <iostream>
 #include <fstream>
@@ -78,8 +79,9 @@ int main() {
 	int vertexCount = readGraphFile(fileName, edges);
 
 	SerialConnectedComponents scc;
+	BoostCC bcc;
 	std::vector<int> vertexToComponent(vertexCount, -1);
-	int componentCount = scc.run(vertexCount, edges, vertexToComponent);
+	int componentCount = bcc.run(vertexCount, edges, vertexToComponent);
 
 
 	std::vector<int> sizeOfComponent;
@@ -88,7 +90,6 @@ int main() {
 	for (int i = 0; i < componentCount; ++i) {
 		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
 	}
-
 
 
 	return 0;

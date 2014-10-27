@@ -12,6 +12,7 @@ private:
 	int edgeCount;
 	std::vector<std::set<int> > vertexToVertices;
 
+
 	bool connect(std::vector<std::set<int> > &g, const int a, const int b);
 	void randomize();
 	void print(std::vector<int> &v);
