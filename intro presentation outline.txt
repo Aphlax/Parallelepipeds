@@ -1,0 +1,13 @@
+3 min
+intro connected components
+	O( |E(G)| )
+	previous work
+	graph generation
+2 min
+mpi
+	messages
+	push
+2 min
+openmp
+	locks
+	lock free
