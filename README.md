@@ -14,3 +14,8 @@ Week 1
 - Gustavo: find a concept for random graph generation (and implement it?)
 - Seraiah: find a concept for the distributed OpenMP solution  (and implement it?)
 - Fabian: find a concept for the distributed MPI solution  (and implement it?)
+
+Week 2
+======
+
+- Presentation
