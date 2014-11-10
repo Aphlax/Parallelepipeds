@@ -9,6 +9,7 @@
 #include "RandomGraph.h"
 #include "SerialConnectedComponents.h"
 #include "BoostCC.h"
+#include "OpenMPCC.cpp"
 
 #include <iostream>
 #include <fstream>
@@ -69,24 +70,22 @@ void findSizeOfComponent(const int vertexCount, const int componentCount, const 
 }
 
 int main() {
+
 	ios_base::sync_with_stdio(false);
 
 	string fileName = "graphs/graph01.txt";
 //	uncomment to generate other graphs
 //	generateAndSaveGraph(fileName);
-
 	vector<pair<int,int> > edges;
 	int vertexCount = readGraphFile(fileName, edges);
-
-	SerialConnectedComponents scc;
-	BoostCC bcc;
+	//SerialConnectedComponents scc;
+	//BoostCC bcc;
+	OpenMPCC ompcc;
 	std::vector<int> vertexToComponent(vertexCount, -1);
-	int componentCount = bcc.run(vertexCount, edges, vertexToComponent);
-
+	int componentCount = ompcc.run(vertexCount, edges, vertexToComponent);
 
 	std::vector<int> sizeOfComponent;
 	findSizeOfComponent(vertexCount, componentCount, vertexToComponent, sizeOfComponent);
-
 	for (int i = 0; i < componentCount; ++i) {
 		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
 	}
