@@ -20,11 +20,11 @@ int SerialUnionFind::run(const int numberOfVertices, const std::vector<std::pair
 	for (int i = 0; i < m; i++) {
 		int u = edges[i].first;
 		int v = edges[i].second;
-		u = find(comp, u)
-		v = find(comp, v)
+		u = find(comp, u);
+		v = find(comp, v);
 
 		if (u != v) {
-			unio(comp, u, v)
+			unio(comp, u, v);
 			n--;
 		}
 	}
@@ -44,16 +44,16 @@ inline int find(vector<int> comp, int find) {
 	while (comp[find] != find) {
 		if (last != -1)
 			comp[last] = comp[find]
-		last = find
-		find = comp[find]
+		last = find;
+		find = comp[find];
 	}
 }
 
 // Unions two sets
 inline void unio(vector<int> comp, int u, int v) {
 	if (u > v)
-		comp[u] = v
+		comp[u] = v;
 	else
-		comp[v] = u
+		comp[v] = u;
 }
 
