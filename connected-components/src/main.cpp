@@ -1,9 +1,9 @@
 //============================================================================
 // Name        : connected-components.cpp
-// Author      : 
-// Version     :
-// Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
+// Author      : Seraiah, Gustavo, Fabian
+// Version     : 0.0.0.1
+// Copyright   : NONE
+// Description : Connected Components in Parallel
 //============================================================================
 
 #include "RandomGraph.h"
@@ -16,6 +16,7 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#include <chrono>
 #include <stdexcept>   // for exception, runtime_error, out_of_range
 using namespace std;
 
@@ -78,11 +79,25 @@ int main() {
 //	generateAndSaveGraph(fileName);
 	vector<pair<int,int> > edges;
 	int vertexCount = readGraphFile(fileName, edges);
+	std::vector<int> vertexToComponent(vertexCount, -1);
+
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+
+	//----------------------------------------------
+	//---------------Implementation-----------------
+	//----------------------------------------------
+
 	//SerialConnectedComponents scc;
 	//BoostCC bcc;
 	OpenMPCC ompcc;
-	std::vector<int> vertexToComponent(vertexCount, -1);
 	int componentCount = ompcc.run(vertexCount, edges, vertexToComponent);
+
+	//----------------------------------------------
+
+	end = std::chrono::system_clock::now();
+
+	std::chrono::duration<double> elapsed_seconds = end-start;
 
 	std::vector<int> sizeOfComponent;
 	findSizeOfComponent(vertexCount, componentCount, vertexToComponent, sizeOfComponent);
@@ -90,6 +105,7 @@ int main() {
 		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
 	}
 
+	cout << "Time elapsed: " << elapsed_seconds.count() << "s\n";
 
 	return 0;
 }
