@@ -29,13 +29,11 @@ int SerialUnionFind::run(const int numberOfVertices, const std::vector<std::pair
 		}
 	}
 
-	cout << n << endl;
-
 	for (int i = 0; i < n; i++) {
 		outVertexToComponent[i] = find(comp, i);
 	}
 
-	return 0;
+	return n;
 }
 
 // Returns the set of that element
