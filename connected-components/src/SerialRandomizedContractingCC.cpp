@@ -17,7 +17,7 @@ class SerialRandomizedContractingCC {
 		const int HEAD = 0;
 		const int TAIL = 1;
 
-		cout << "RandomizedContractingMPCC started" << endl;
+		cout << "SerialRandomizedContractingMPCC started" << endl;
 		vector<pair<int,int> > headOrTail = vector<pair<int, int> >(numberOfVertices, pair<int, int>(0, -1)); // head or tail, iteration
 		vector<pair<int,int> > E;
 		for (unsigned int i = 0; i < edges.size(); ++i) E.push_back(pair<int, int>(edges[i]));
@@ -32,10 +32,12 @@ class SerialRandomizedContractingCC {
 				int v = E[i].second;
 				if (u == v) continue;
 				if (headOrTail[u].second != iteration) {
-					//headOrTail[u] = pair<int,int>(rand_r(&seed)%2, iteration);
+//					headOrTail[u] = pair<int,int>(rand_r(&seed)%2, iteration);
+					headOrTail[u] = pair<int,int>(rand()%2, iteration);
 				}
 				if (headOrTail[v].second != iteration) {
 					//headOrTail[v] = pair<int,int>(rand_r(&seed)%2, iteration);
+					headOrTail[v] = pair<int,int>(rand()%2, iteration);
 				}
 
 				if (headOrTail[u].first == TAIL && headOrTail[v].first == HEAD) {
