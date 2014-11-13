@@ -10,6 +10,8 @@
 #include "SerialConnectedComponents.h"
 #include "BoostCC.h"
 #include "OpenMPCC.cpp"
+#include "SerialRandomizedContractingCC.cpp"
+#include "OpenMPRandomizedContractingCC.cpp"
 
 #include <iostream>
 #include <fstream>
@@ -18,6 +20,7 @@
 #include <ctime>
 #include <chrono>
 #include <stdexcept>   // for exception, runtime_error, out_of_range
+#include <unordered_map>
 using namespace std;
 
 void generateAndSaveGraph(const string& fileName) {
@@ -63,16 +66,27 @@ int readGraphFile(const string& fileName, vector<pair<int, int> > &outEdges) {
 }
 
 
-void findSizeOfComponent(const int vertexCount, const int componentCount, const std::vector<int>& vertexToComponent, std::vector<int>& outSizeOfComponent) {
-	outSizeOfComponent.resize(componentCount, 0);
-	for (int i = 0; i < vertexCount; ++i) {
-		++outSizeOfComponent[vertexToComponent[i]];
+int findSizeOfComponent(const int vertexCount, const std::vector<int>& vertexToComponent, std::vector<int>& outSizeOfComponent) {
+	std::unordered_map<int, int> m;
+	for(int i = 0; i < vertexCount; ++i) {
+		std::unordered_map<int, int>::iterator it = m.find(vertexToComponent[i]);
+		if (it == m.end()) {
+			m.insert(pair<int,int>(vertexToComponent[i], 1));
+		} else {
+			++(it->second);
+		}
 	}
+	outSizeOfComponent.resize(0);
+	for (std::unordered_map<int, int>::iterator it = m.begin(); it != m.end(); ++it) {
+		outSizeOfComponent.push_back(it->second);
+	}
+	sort(outSizeOfComponent.begin(), outSizeOfComponent.end());
+	return outSizeOfComponent.size();
 }
 
 int main() {
 
-	ios_base::sync_with_stdio(false);
+//	ios_base::sync_with_stdio(false);
 
 	string fileName = "graphs/graph01.txt";
 //	uncomment to generate other graphs
@@ -92,6 +106,12 @@ int main() {
 	BoostCC bcc;
 	OpenMPCC ompcc;
 	int componentCount = bcc.run(vertexCount, edges, vertexToComponent);
+	SerialConnectedComponents cc;
+	//BoostCC cc;
+//    OpenMPCC cc;
+//    SerialRandomizedContractingCC cc;
+//    OpenMPRandomizedContractingCC cc;
+    cc.run(vertexCount, edges, vertexToComponent);
 
 	//----------------------------------------------
 
@@ -100,7 +120,7 @@ int main() {
 	std::chrono::duration<double> elapsed_seconds = end-start;
 
 	std::vector<int> sizeOfComponent;
-	findSizeOfComponent(vertexCount, componentCount, vertexToComponent, sizeOfComponent);
+	int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
 	for (int i = 0; i < componentCount; ++i) {
 		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
 	}
