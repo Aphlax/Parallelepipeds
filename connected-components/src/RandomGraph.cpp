@@ -85,6 +85,7 @@ void RandomGraph::randomize() {
 
 // returns false if element already exists
 bool RandomGraph::connect(vector<set<int> > &g, const int a, const int b) {
+	if (a == b) return false; // no self referencing
 	int x = min(a,b);
 	int y = max(a,b);
 	return g[x].insert(y).second;
