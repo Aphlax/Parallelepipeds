@@ -79,7 +79,7 @@ int main() {
 	vector<pair<int,int> > edges;
 	int vertexCount = readGraphFile(fileName, edges);
 	//SerialConnectedComponents scc;
-	//BoostCC bcc;
+	BoostCC bcc;
 	OpenMPCC ompcc;
 	std::vector<int> vertexToComponent(vertexCount, -1);
 	int componentCount = ompcc.run(vertexCount, edges, vertexToComponent);
