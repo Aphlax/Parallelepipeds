@@ -28,6 +28,7 @@ class OpenMPCC {
 			graph[edges[i].first].push_back(edges[i].second);
 			graph[edges[i].second].push_back(edges[i].first);
 		}
+
 		#pragma omp parallel for shared(outVertexToComponent)
 		for (unsigned int i = 0; i < graph.size(); ++i) {
 			if (outVertexToComponent[i] >= 0) continue;
@@ -43,7 +44,6 @@ class OpenMPCC {
 					int next = graph[cur][j];
 					if (outVertexToComponent[next] >= 0)
 					{
-
 						int m,n;
 						if(compMark>outVertexToComponent[next])
 						{	m= outVertexToComponent[next]; n = compMark;}
@@ -59,6 +59,7 @@ class OpenMPCC {
 		}
 
 
+		cout << "made it" << endl;
 		vector<int> countPerComp(numberOfVertices,0);
 		for(unsigned int i = 0; i < graph.size(); ++i)
 		{
