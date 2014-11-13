@@ -16,16 +16,13 @@ using namespace boost;
 
 class OpenMPCC {
 
-	typedef adjacency_list<vecS, vecS, undirectedS> Graph;
-	typedef graph_traits<Graph>::vertex_descriptor Vertex;
-
 	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
-		int numThreads = omp_get_num_threads();
+
 		cout << "openMPCC started." << endl;
 		std::vector<std::vector<int> > graph(numberOfVertices, std::vector<int>());
 		std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
-		tuple<int,int> t;
-		boost::lockfree::queue<tuple<int,int>> queue(128);
+		//tuple <int,int> t (1,1);
+		//boost::lockfree::queue2<tuple<int,int> > queue(128);
 
 		for (unsigned int i = 0; i < edges.size(); ++i) {
 			graph[edges[i].first].push_back(edges[i].second);

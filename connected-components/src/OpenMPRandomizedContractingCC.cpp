@@ -24,7 +24,7 @@ class OpenMPRandomizedContractingCC {
 			unsigned int seed = omp_get_thread_num();
 			#pragma omp for
 			for (unsigned int i = 0; i < test.size(); ++i) {
-				test[i] = rand_r(&seed);
+				//test[i] = rand_r(&seed);
 			}
 		}
 		sort(test.begin(), test.end());

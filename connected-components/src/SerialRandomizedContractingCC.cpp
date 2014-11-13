@@ -32,10 +32,10 @@ class SerialRandomizedContractingCC {
 				int v = E[i].second;
 				if (u == v) continue;
 				if (headOrTail[u].second != iteration) {
-					headOrTail[u] = pair<int,int>(rand_r(&seed)%2, iteration);
+					//headOrTail[u] = pair<int,int>(rand_r(&seed)%2, iteration);
 				}
 				if (headOrTail[v].second != iteration) {
-					headOrTail[v] = pair<int,int>(rand_r(&seed)%2, iteration);
+					//headOrTail[v] = pair<int,int>(rand_r(&seed)%2, iteration);
 				}
 
 				if (headOrTail[u].first == TAIL && headOrTail[v].first == HEAD) {
