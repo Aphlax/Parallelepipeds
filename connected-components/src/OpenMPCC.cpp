@@ -4,12 +4,12 @@
 #include <vector>
 #include <omp.h>
 #include <cmath>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/graph/connected_components.hpp>
 #include <iostream>
 #include <queue>
 #include <set>
+#include <boost/lockfree/queue.hpp>
+#include <tuple>
+
 
 using namespace std;
 using namespace boost;
@@ -24,6 +24,9 @@ class OpenMPCC {
 		cout << "openMPCC started." << endl;
 		std::vector<std::vector<int> > graph(numberOfVertices, std::vector<int>());
 		std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
+		tuple<int,int> t;
+		boost::lockfree::queue<tuple<int,int>> queue(128);
+
 		for (unsigned int i = 0; i < edges.size(); ++i) {
 			graph[edges[i].first].push_back(edges[i].second);
 			graph[edges[i].second].push_back(edges[i].first);
@@ -58,8 +61,6 @@ class OpenMPCC {
 			}
 		}
 
-
-		cout << "made it" << endl;
 		vector<int> countPerComp(numberOfVertices,0);
 		for(unsigned int i = 0; i < graph.size(); ++i)
 		{

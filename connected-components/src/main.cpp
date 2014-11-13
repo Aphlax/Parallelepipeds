@@ -91,7 +91,7 @@ int main() {
 	//SerialConnectedComponents scc;
 	BoostCC bcc;
 	OpenMPCC ompcc;
-	int componentCount = ompcc.run(vertexCount, edges, vertexToComponent);
+	int componentCount = bcc.run(vertexCount, edges, vertexToComponent);
 
 	//----------------------------------------------
 
