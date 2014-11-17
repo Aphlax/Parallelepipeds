@@ -110,7 +110,7 @@ int main() {
 //    OpenMPCC cc;
 //    SerialRandomizedContractingCC cc;
 //    OpenMPRandomizedContractingCC cc;
-    cc.run(vertexCount, edges, vertexToComponent);
+    ompcc.run(vertexCount, edges, vertexToComponent);
 
 	//----------------------------------------------
 
