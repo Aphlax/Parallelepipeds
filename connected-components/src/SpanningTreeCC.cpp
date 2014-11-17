@@ -15,9 +15,9 @@ public:
 	 * It expects that outVertexToComponent is a vector of size numberOfVertices, filled with -1
 	 */
 	int run(const int n, const vector<pair<int,int> > &e, vector<int> &comp) {
-		const int m = e.size();
+		/*		const int m = e.size();
 		vector< vector< pair< int, int > > > strees;
-/*
+
 		#pragma omp parallel shared(n, m, p, g, e, strees)
 		{
 			int p = omp_get_num_threads();
@@ -50,7 +50,7 @@ public:
 
 
 
-		}*/
+		}
 
 		vector<int> comp(n);
 		for (int i = 0; i < n; i++) {
@@ -74,7 +74,7 @@ public:
 		for (int i = 0; i < n; i++) {
 			outVertexToComponent[i] = find(comp, i);
 		}
-
+*/
 		return 0;
 	}
 };

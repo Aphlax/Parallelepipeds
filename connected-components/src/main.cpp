@@ -115,8 +115,9 @@ int main(int argc, char* argv[]) {
 		}
 		else if (argv[i] == "-p") {// # threads selection
 			if (++i < argc) {
+				string a = argv[i];
 				bool isNumber = true;
-				for(string::const_iterator k = argv[i].begin(); k != argv[i].end(); ++k)
+				for(string::const_iterator k = a.begin(); k != a.end(); ++k)
 				    isNumber &&= isdigit(*k);
 				if (isNumber)
 					omp_set_num_threads(stoi(argv[i]));
