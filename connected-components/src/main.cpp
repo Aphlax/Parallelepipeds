@@ -111,17 +111,17 @@ int main(int argc, char* argv[]) {
 			alg = 7;
 		else if (argv[i] == "-g") {// graph selection
 			if (++i < argc)
-				filename = argv[i];
+				fileName = argv[i];
 		}
 		else if (argv[i] == "-p") {// # threads selection
-			if (++i < argc) {
+			/*if (++i < argc) {
 				string a = argv[i];
 				bool isNumber = true;
 				for(string::const_iterator k = a.begin(); k != a.end(); ++k)
 				    isNumber &&= isdigit(*k);
 				if (isNumber)
 					omp_set_num_threads(stoi(argv[i]));
-			}
+			}*/
 		}
 	}
 
