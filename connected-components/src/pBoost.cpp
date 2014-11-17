@@ -3,7 +3,6 @@
 #include <cmath>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/graph/distributed/strong_components.hpp>
 
 
 using namespace std;
@@ -13,7 +12,7 @@ typedef adjacency_list<vecS, vecS, undirectedS> Graph;
 typedef graph_traits<Graph>::vertex_descriptor Vertex;
 
 
-class BoostCC {
+class pBoost {
 
 public:
 	/**
@@ -21,13 +20,8 @@ public:
 	 * It expects that outVertexToComponent is a vector of size numberOfVertices, filled with -1
 	 */
 	int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
-		Graph g(numberOfVertices);
-		for (unsigned int i = 0; i < edges.size(); ++i) {
-			add_edge(edges[i].first, edges[i].second,g);
-		}
 
-		int componentCount = connected_components(g, &outVertexToComponent[0]);
-		return componentCount;
+		return 0;
 	}
-}
+};
 

@@ -92,6 +92,7 @@ class OpenMPCC {
 		}
 
 		vector<int> countPerComp(numberOfVertices,0);
+		#pragma omp parallel for
 		for(unsigned int i = 0; i < graph.size(); ++i)
 		{
 			countPerComp[outVertexToComponent[i]]++;

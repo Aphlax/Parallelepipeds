@@ -141,7 +141,6 @@ int main(int argc, char* argv[]) {
 	//----------------------------------------------
 	//---------------Implementation-----------------
 	//----------------------------------------------
-
     if (alg == 0) {// bfs
     	SerialConnectedComponents cc;
     	cc.run(vertexCount, edges, vertexToComponent);
