@@ -9,6 +9,8 @@
 #include "RandomGraph.h"
 #include "SerialConnectedComponents.h"
 #include "BoostCC.h"
+#include "pBoostCC.h"
+#include "SerialUnionFind.h"
 #include "OpenMPCC.cpp"
 #include "SpanningTreeCC.cpp"
 #include "SerialRandomizedContractingCC.cpp"
