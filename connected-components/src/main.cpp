@@ -10,12 +10,14 @@
 #include "SerialConnectedComponents.h"
 #include "BoostCC.h"
 #include "OpenMPCC.cpp"
+#include "SpanningTreeCC.cpp"
 #include "SerialRandomizedContractingCC.cpp"
 #include "OpenMPRandomizedContractingCC.cpp"
 
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <ctype.h>
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
@@ -84,11 +86,46 @@ int findSizeOfComponent(const int vertexCount, const std::vector<int>& vertexToC
 	return outSizeOfComponent.size();
 }
 
-int main() {
-
-//	ios_base::sync_with_stdio(false);
-
+int main(int argc, char* argv[]) {
+	// Argument parsing
+	// ./a.exe bfs -g "graphs/g03.txt" -p 42
+	// all arguments are optional
+	int alg = 0;
 	string fileName = "graphs/graph01.txt";
+	for (int i = 1; i < argc; i++) {
+		if (argv[i] == "bfs")
+			alg = 0;
+		else if (argv[i] == "ufind")
+			alg = 1;
+		else if (argv[i] == "contract")
+			alg = 2;
+		else if (argv[i] == "boost")
+			alg = 3;
+		else if (argv[i] == "pboost")
+			alg = 4;
+		else if (argv[i] == "pbfs")
+			alg = 5;
+		else if (argv[i] == "pstree")
+			alg = 6;
+		else if (argv[i] == "pcontract")
+			alg = 7;
+		else if (argv[i] == "-g") {// graph selection
+			if (++i < argc)
+				filename = argv[i];
+		}
+		else if (argv[i] == "-p") {// # threads selection
+			if (++i < argc) {
+				bool isNumber = true;
+				for(string::const_iterator k = argv[i].begin(); k != argv[i].end(); ++k)
+				    isNumber &&= isdigit(*k);
+				if (isNumber)
+					omp_set_num_threads(stoi(argv[i]));
+			}
+		}
+	}
+
+	//ios_base::sync_with_stdio(false);
+
 //	uncomment to generate other graphs
 //	generateAndSaveGraph(fileName);
 	vector<pair<int,int> > edges;
@@ -102,15 +139,31 @@ int main() {
 	//---------------Implementation-----------------
 	//----------------------------------------------
 
-	//SerialConnectedComponents scc;
-	BoostCC bcc;
-	OpenMPCC ompcc;
-	SerialConnectedComponents cc;
-	//BoostCC cc;
-//    OpenMPCC cc;
-//    SerialRandomizedContractingCC cc;
-//    OpenMPRandomizedContractingCC cc;
-    ompcc.run(vertexCount, edges, vertexToComponent);
+    if (alg == 0) {// bfs
+    	SerialConnectedComponents cc;
+    	cc.run(vertexCount, edges, vertexToComponent);
+    } else if (alg == 1) {// ufind
+    	SerialUnionFind cc;
+    	cc.run(vertexCount, edges, vertexToComponent);
+    } else if (alg == 2) {// contract
+    	SerialRandomizedContractingCC cc;
+    	cc.run(vertexCount, edges, vertexToComponent);
+    } else if (alg == 3) {// boost
+    	BoostCC cc;
+    	cc.run(vertexCount, edges, vertexToComponent);
+    } else if (alg == 4) {// pboost
+    	pBoost cc;
+    	cc.run(vertexCount, edges, vertexToComponent);
+    } else if (alg == 5) {// pbfs
+    	OpenMPCC cc;
+    	cc.run(vertexCount, edges, vertexToComponent);
+    } else if (alg == 6) {// pstree
+    	SpanningTreeCC cc;
+    	cc.run(vertexCount, edges, vertexToComponent);
+    } else if (alg == 7) {// pcontract
+    	OpenMPRandomizedContractingCC cc;
+    	cc.run(vertexCount, edges, vertexToComponent);
+    }
 
 	//----------------------------------------------
 
