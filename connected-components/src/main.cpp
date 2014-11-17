@@ -95,27 +95,27 @@ int main(int argc, char* argv[]) {
 	int alg = 0;
 	string fileName = "graphs/graph01.txt";
 	for (int i = 1; i < argc; i++) {
-		if (argv[i] == "bfs")
+		if (strcmp(argv[i], "bfs"))
 			alg = 0;
-		else if (argv[i] == "ufind")
+		else if (strcmp(argv[i], "ufind"))
 			alg = 1;
-		else if (argv[i] == "contract")
+		else if (strcmp(argv[i], "contract"))
 			alg = 2;
-		else if (argv[i] == "boost")
+		else if (strcmp(argv[i], "boost"))
 			alg = 3;
-		else if (argv[i] == "pboost")
+		else if (strcmp(argv[i], "pboost"))
 			alg = 4;
-		else if (argv[i] == "pbfs")
+		else if (strcmp(argv[i], "pbfs"))
 			alg = 5;
-		else if (argv[i] == "pstree")
+		else if (strcmp(argv[i], "pstree"))
 			alg = 6;
-		else if (argv[i] == "pcontract")
+		else if (strcmp(argv[i], "pcontract"))
 			alg = 7;
-		else if (argv[i] == "-g") {// graph selection
+		else if (strcmp(argv[i], "-g")) {// graph selection
 			if (++i < argc)
 				fileName = argv[i];
 		}
-		else if (argv[i] == "-p") {// # threads selection
+		else if (strcmp(argv[i], "-p")) {// # threads selection
 			/*if (++i < argc) {
 				string a = argv[i];
 				bool isNumber = true;
