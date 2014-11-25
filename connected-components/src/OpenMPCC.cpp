@@ -17,9 +17,11 @@ using namespace std;
 using namespace boost;
 
 class OpenMPCC {
+	std::chrono::time_point<std::chrono::system_clock> start, end;
+	std::chrono::duration<double> elapsed_seconds;
 
 	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
-		std::chrono::time_point<std::chrono::system_clock> start, end;
+
 		start = std::chrono::system_clock::now();
 
 		cout << "openMPCC started." << endl;
@@ -36,7 +38,7 @@ class OpenMPCC {
 			}
 		}
 		end = std::chrono::system_clock::now();
-		std::chrono::duration<double> elapsed_seconds = end-start;
+		elapsed_seconds = end-start;
 		cout << "graph generating time: " << elapsed_seconds.count() << "s\n";
 		start = std::chrono::system_clock::now();
 
@@ -68,11 +70,10 @@ class OpenMPCC {
 						int next = graph[cur][j];
 						if (outVertexToComponent[next] >= 0 && outVertexToComponent[next]!= compMark)
 						{
-							int m = min(compMark, outVertexToComponent[next]);
-							int n = max(compMark, outVertexToComponent[next]);
-							//if(m==0)cout << "merge o with "<< n << endl;
-							//if(next==2855)cout << "merge 2855 with "<< n << " or " << m << endl;
+							int m = compMark;
+							int n = outVertexToComponent[next];
 							mergeMapArray[tn][m].insert(n);
+							mergeMapArray[tn][n].insert(m);
 							continue;
 						}
 						else if(outVertexToComponent[next]!= compMark)
@@ -115,28 +116,47 @@ class OpenMPCC {
 				mergeMap[j].insert(mergeMapArray[i][j].begin(), mergeMapArray[i][j].end());
 			}
 		}
-
-		vector<bool> compHasElem(numberOfVertices,false);
-
+		//clean the merging map
 		for(unsigned int i = 0; i < graph.size(); ++i)
 		{
-			compHasElem[outVertexToComponent[i]]=true;
+			bool newAdded=false;
+			do
+			{
+				newAdded=false;
+				set<int> mergeSet;
+				for(set<int>::iterator it = mergeMap[i].begin(); it!=mergeMap[i].end() ;it++)
+				{
+					if(not mergeMap[*it].empty() && *it != i)
+					{
+						mergeSet.insert(mergeMap[*it].begin(),mergeMap[*it].end());
+						mergeMap[*it].clear();
+						newAdded=true;
+					}
+				}
+				mergeMap[i].insert(mergeSet.begin(), mergeSet.end());
+			}while(newAdded);
 		}
-		//clean the merging map
+		//assign final comp nr
+		vector<int> compHasElem(numberOfVertices,0);
+		for(unsigned int i = 0; i < graph.size(); ++i)
+		{
+			compHasElem[outVertexToComponent[i]]++;
+		}
 		vector<int>finalCompNr(numberOfVertices,-1);
 		int componentCount=0;
 		for(unsigned int i = 0; i < graph.size(); ++i)
 		{
-			if(compHasElem[i] && finalCompNr[i]<0)
+			if(compHasElem[i]>0 && finalCompNr[i]<0)
 			{
 				finalCompNr[i]=componentCount;
 				componentCount++;
 			}
 			for(set<int>::iterator it = mergeMap[i].begin(); it!=mergeMap[i].end() ;it++)
 			{
-					finalCompNr[*it] = finalCompNr[i];
+				finalCompNr[*it] = finalCompNr[i];
 			}
 		}
+
 		//mark all vertices with the new Index
 		for(unsigned int i = 0; i < graph.size(); ++i)
 		{
