@@ -6,8 +6,6 @@
 # include <queue>
 # include <omp.h>
 
-# include "SerialConnectedComponents.h"
-
 using namespace std;
 
 class SpanningTreeCC {
@@ -135,13 +133,6 @@ public:
 		}
 
 		return resultSize;
-	}
-
-
-	int alg(const int n, int s0, int e0, const vector< pair<int, int> > &edges0, int e1, vector<pair<int,int> > &edges1, vector< pair<int, int> > &stree) {
-
-		return 0;
-
 	}
 
 	/*// Old version with BFS - slow and wrong

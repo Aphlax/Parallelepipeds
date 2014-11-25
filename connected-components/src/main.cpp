@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
     } else if (alg == 7) {// pcontract
     	cout << "pbfsatomic\n";
     	OpenMPRandomizedContractingCC cc;
-    	cc.run(vertexCount, edges, vertexToComponent);
+    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 8) {// pbfsatomic
     	cout << "pbfsatomic\n";
     	PBfsAtomic cc;
