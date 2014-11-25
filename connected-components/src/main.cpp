@@ -125,14 +125,23 @@ int main(int argc, char* argv[]) {
 				fileName = argv[i];
 		}
 		else if (!strcmp(argv[i], "-p")) {// # threads selection
-			/*if (++i < argc) {
-				string a = argv[i];
+			if (++i < argc) {
 				bool isNumber = true;
-				for(string::const_iterator k = a.begin(); k != a.end(); ++k)
-				    isNumber &&= isdigit(*k);
-				if (isNumber)
-					omp_set_num_threads(stoi(argv[i]));
-			}*/
+				for(char* k = argv[i]; *k != 0 && isNumber; ++k)
+				    isNumber = isNumber && isdigit(*k);
+				if (isNumber) {
+					int p = 4;//= string::stoi(argv[i]);
+					omp_set_num_threads(p);
+				}
+			}
+		}
+		else if (!strcmp(argv[i], "-h")) {
+			cout << "Algorithms: bfs, ufind, contract, boost\nParallel Algorithms: pboost, pbfs, pstree, pcontract\n";
+			return 0;
+		}
+		else {
+			cout << "Invalid algorithm: " << argv[i] << endl;
+			return 0;
 		}
 	}
 
@@ -143,6 +152,7 @@ int main(int argc, char* argv[]) {
 	vector<pair<int,int> > edges;
 	int vertexCount = readGraphFile(fileName, edges);
 	std::vector<int> vertexToComponent(vertexCount, -1);
+	int nrComponents = 0;
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
     start = std::chrono::system_clock::now();
@@ -154,31 +164,31 @@ int main(int argc, char* argv[]) {
     if (alg == 0) {// bfs
     	cout << "bfs\n";
     	Bfs cc;
-    	cc.run(vertexCount, edges, vertexToComponent);
+    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 1) {// ufind
     	cout << "ufind\n";
     	SerialUnionFind cc;
-    	cc.run(vertexCount, edges, vertexToComponent);
+    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 2) {// randcontract
     	cout << "randcontract\n";
     	RandomizedContract cc;
-    	cc.run(vertexCount, edges, vertexToComponent);
+    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 3) {// boost
     	cout << "boost\n";
     	BoostCC cc;
-    	cc.run(vertexCount, edges, vertexToComponent);
+    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 4) {// pboost
     	cout << "pboost\n";
     	pBoost cc;
-    	cc.run(vertexCount, edges, vertexToComponent);
+    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 5) {// pbfs
     	cout << "pbfs\n";
     	OpenMPCC cc;
-    	cc.run(vertexCount, edges, vertexToComponent);
+    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 6) {// pstree
     	cout << "pstree\n";
     	SpanningTreeCC cc;
-    	cc.run(vertexCount, edges, vertexToComponent);
+    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 7) {// pcontract
     	cout << "pbfsatomic\n";
     	OpenMPRandomizedContractingCC cc;
@@ -186,7 +196,7 @@ int main(int argc, char* argv[]) {
     } else if (alg == 8) {// pbfsatomic
     	cout << "pbfsatomic\n";
     	PBfsAtomic cc;
-    	cc.run(vertexCount, edges, vertexToComponent);
+    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     }
 
 	//----------------------------------------------
@@ -201,6 +211,7 @@ int main(int argc, char* argv[]) {
 		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
 	}
 
+	cout << "Number of components: " << nrComponents<< endl;
 	cout << "Time elapsed: " << elapsed_seconds.count() << "s\n";
 
 	return 0;
