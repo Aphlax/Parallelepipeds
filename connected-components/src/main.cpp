@@ -15,6 +15,7 @@
 #include "SpanningTreeCC.cpp"
 #include "SerialRandomizedContractingCC.cpp"
 #include "OpenMPRandomizedContractingCC.cpp"
+#include "pBfsAtomic.cpp"
 
 #include <iostream>
 #include <fstream>
@@ -35,7 +36,7 @@ void generateAndSaveGraph(const string& fileName) {
 	int connectivity = 10;
 	vector<int> sizeOfEachComponent;
 	for (int i = 0; i < 10; ++i) {
-		sizeOfEachComponent.push_back(100 * (i + 1));
+		sizeOfEachComponent.push_back(100000 * (i + 1));
 	}
 	RandomGraph r(sizeOfEachComponent, connectivity);
 
@@ -93,7 +94,7 @@ int main(int argc, char* argv[]) {
 	// ./a.exe bfs -g "graphs/g03.txt" -p 42
 	// all arguments are optional
 	int alg = 0;
-	string fileName = "graphs/graph01.txt";
+	string fileName = "graphs/graph03.txt";
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "bfs"))
 			alg = 0;
@@ -111,6 +112,8 @@ int main(int argc, char* argv[]) {
 			alg = 6;
 		else if (!strcmp(argv[i], "pcontract"))
 			alg = 7;
+		else if (!strcmp(argv[i], "pbfsatomic"))
+			alg = 8;
 		else if (!strcmp(argv[i], "-g")) {// graph selection
 			if (++i < argc)
 				fileName = argv[i];
@@ -164,6 +167,9 @@ int main(int argc, char* argv[]) {
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 7) {// pcontract
     	OpenMPRandomizedContractingCC cc;
+    	cc.run(vertexCount, edges, vertexToComponent);
+    } else if (alg == 8) {// pbfsatomic
+    	PBfsAtomic cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     }
 
