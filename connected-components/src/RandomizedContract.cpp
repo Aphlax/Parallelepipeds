@@ -11,19 +11,20 @@
 
 using namespace std;
 
-class SerialRandomizedContractingCC {
+class RandomizedContract {
 
 	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &L) {
 		const int HEAD = 0;
 		const int TAIL = 1;
 
-		cout << "SerialRandomizedContractingMPCC started" << endl;
 		vector<pair<int,int> > headOrTail = vector<pair<int, int> >(numberOfVertices, pair<int, int>(0, -1)); // head or tail, iteration
 		vector<pair<int,int> > E;
 		for (unsigned int i = 0; i < edges.size(); ++i) E.push_back(pair<int, int>(edges[i]));
 		for (int i = 0; i < numberOfVertices; ++i) L[i] = i;
 		int edgesLeft = edges.size();
-		unsigned int seed = 0;
+		#ifdef __linux__
+			unsigned int seed = 0;
+		#endif
 
 		stack<pair<int,int> > s;
 		for (int iteration = 0; edgesLeft > 0; ++iteration) {
@@ -32,12 +33,18 @@ class SerialRandomizedContractingCC {
 				int v = E[i].second;
 				if (u == v) continue;
 				if (headOrTail[u].second != iteration) {
-//					headOrTail[u] = pair<int,int>(rand_r(&seed)%2, iteration);
-					headOrTail[u] = pair<int,int>(rand()%2, iteration);
+					#ifdef __linux__
+						headOrTail[u] = pair<int,int>(rand_r(&seed)%2, iteration);
+					#elif _WIN32
+						headOrTail[u] = pair<int,int>(rand()%2, iteration);
+					#endif
 				}
 				if (headOrTail[v].second != iteration) {
-					//headOrTail[v] = pair<int,int>(rand_r(&seed)%2, iteration);
-					headOrTail[v] = pair<int,int>(rand()%2, iteration);
+					#ifdef __linux__
+						headOrTail[v] = pair<int,int>(rand_r(&seed)%2, iteration);
+					#elif _WIN32
+						headOrTail[v] = pair<int,int>(rand()%2, iteration);
+					#endif
 				}
 
 				if (headOrTail[u].first == TAIL && headOrTail[v].first == HEAD) {

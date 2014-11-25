@@ -7,13 +7,13 @@
 //============================================================================
 
 #include "RandomGraph.h"
-#include "SerialConnectedComponents.h"
+#include "Bfs.cpp"
 #include "BoostCC.h"
 #include "pBoost.cpp"
 #include "SerialUnionFind.h"
 #include "OpenMPCC.cpp"
 #include "SpanningTreeCC.cpp"
-#include "SerialRandomizedContractingCC.cpp"
+#include "RandomizedContract.cpp"
 #include "OpenMPRandomizedContractingCC.cpp"
 #include "pBfsAtomic.cpp"
 
@@ -90,6 +90,12 @@ int findSizeOfComponent(const int vertexCount, const std::vector<int>& vertexToC
 }
 
 int main(int argc, char* argv[]) {
+
+	#ifdef __linux__
+		cout << "Running on linux\n";
+	#elif _WIN32
+		cout << "Not running on linux\n";
+	#endif
 	// Argument parsing
 	// ./a.exe bfs -g "graphs/g03.txt" -p 42
 	// all arguments are optional
@@ -100,7 +106,7 @@ int main(int argc, char* argv[]) {
 			alg = 0;
 		else if (!strcmp(argv[i], "ufind"))
 			alg = 1;
-		else if (!strcmp(argv[i], "contract"))
+		else if (!strcmp(argv[i], "randcontract"))
 			alg = 2;
 		else if (!strcmp(argv[i], "boost"))
 			alg = 3;
@@ -144,31 +150,41 @@ int main(int argc, char* argv[]) {
 	//----------------------------------------------
 	//---------------Implementation-----------------
 	//----------------------------------------------
+	cout << "Running ";
     if (alg == 0) {// bfs
-    	SerialConnectedComponents cc;
+    	cout << "bfs\n";
+    	Bfs cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 1) {// ufind
+    	cout << "ufind\n";
     	SerialUnionFind cc;
     	cc.run(vertexCount, edges, vertexToComponent);
-    } else if (alg == 2) {// contract
-    	SerialRandomizedContractingCC cc;
+    } else if (alg == 2) {// randcontract
+    	cout << "randcontract\n";
+    	RandomizedContract cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 3) {// boost
+    	cout << "boost\n";
     	BoostCC cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 4) {// pboost
+    	cout << "pboost\n";
     	pBoost cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 5) {// pbfs
+    	cout << "pbfs\n";
     	OpenMPCC cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 6) {// pstree
+    	cout << "pstree\n";
     	SpanningTreeCC cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 7) {// pcontract
+    	cout << "pbfsatomic\n";
     	OpenMPRandomizedContractingCC cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 8) {// pbfsatomic
+    	cout << "pbfsatomic\n";
     	PBfsAtomic cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     }
