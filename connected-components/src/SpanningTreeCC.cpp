@@ -44,6 +44,8 @@ public:
 
 		#pragma omp parallel shared(strees, streeSize, resultComp, resultSize)
 		{
+			// Initialisation
+
 			const int p = omp_get_num_threads();
 			const int id = omp_get_thread_num();
 			int round = 2;
@@ -55,13 +57,12 @@ public:
 				comp[i] = i;
 			}
 
-
 			if (id == 0) {
 				strees = vector<vector< pair< int, int > >* >(p, nullptr);
 				streeSize = vector<int>(p, -1);
 			}
 
-			#pragma omp barrier
+			#pragma omp barrier // First round
 
 			{
 				int s0 = id * (m / p);
@@ -84,6 +85,8 @@ public:
 					}
 				}
 			}
+
+			// All other rounds
 
 			for (; round < 2 * p; round *= 2) {
 				if (id % round == 0) {

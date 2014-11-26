@@ -113,3 +113,14 @@ std::vector<std::set<int> >* RandomGraph::getGraphDatastructure() {
 	return &vertexToVertices;
 }
 
+
+std::vector<std::pair<int, int> > RandomGraph::getEdgeList() {
+	vector<pair<int, int> > edges;
+	for (unsigned int i = 0; i < vertexToVertices.size(); ++i) {
+		for (set<int>::iterator it = vertexToVertices[i].begin(); it != vertexToVertices[i].end(); ++it) {
+			edges.push_back(make_pair(i, *it));
+		}
+	}
+	random_shuffle(edges.begin(), edges.end());
+	return edges;
+}
