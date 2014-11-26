@@ -1,17 +1,17 @@
 
-# include <iostream>
-# include <vector>
-# include <utility>
-# include <algorithm>
-# include <queue>
-# include <omp.h>
+#include <iostream>
+#include <vector>
+#include <utility>
+#include <algorithm>
+#include <queue>
+#include <omp.h>
 
 using namespace std;
 
 class SpanningTreeCC {
 
 	// Returns the set of that element, and does path-halving
-	inline int find(vector<int> comp, int find) {
+	inline int find(vector<int> &comp, int find) {
 		int last = -1;
 		while (comp[find] != find) {
 			if (last != -1)
@@ -19,10 +19,11 @@ class SpanningTreeCC {
 			last = find;
 			find = comp[find];
 		}
+		return find;
 	}
 
 	// Unions two sets
-	inline void unio(vector<int> comp, int u, int v) {
+	inline void unio(vector<int> &comp, int u, int v) {
 		if (u > v)
 			comp[u] = v;
 		else
@@ -36,7 +37,7 @@ class SpanningTreeCC {
 public:
 	int run(const int n, const vector<pair<int,int> > &e, vector<int> &outVertexToComponent) {
 		const int m = e.size();
-		vector<vector<pair<int, int> > > strees;
+		vector<vector<pair<int, int> >* > strees;
 		vector<int> streeSize;
 		vector<int> resultComp;
 		int resultSize;
@@ -54,17 +55,17 @@ public:
 				comp[i] = i;
 			}
 
+
 			if (id == 0) {
-				cout << "#threads: " << p << "   #nodes: " << n  << "   #edges: " << m << endl;
-				strees = vector<vector< pair< int, int > > >(p);
+				strees = vector<vector< pair< int, int > >* >(p, nullptr);
 				streeSize = vector<int>(p, -1);
 			}
 
 			#pragma omp barrier
 
 			{
-				int s0 = id*(m / p);
-				int e0 = id == p -1 ? m : (id+1)*(m / p);
+				int s0 = id * (m / p);
+				int e0 = id == p - 1 ? m : (id + 1)*(m / p);
 
 
 				for (int i = s0; i < e0; i++) {
@@ -78,19 +79,19 @@ public:
 
 						if (id != 0)
 							stree[streeCount++] = e[i];
+						else
+							streeCount++;
 					}
 				}
 			}
 
-			#pragma omp barrier
 
-
-			for (; round < p; round *= 2) {
+			for (; round < 2 * p; round *= 2) {
 				if (id % round == 0) {
 					#pragma omp barrier
 					int otherId = id + round / 2;
 					if (otherId < p) {
-						vector<pair<int, int> > otherTree = strees[otherId];
+						vector<pair<int, int> > otherTree = *strees[otherId];
 						int otherCount = streeSize[otherId];
 
 						for (int i = 0; i < otherCount; i++) {
@@ -103,22 +104,24 @@ public:
 								unio(comp, u, v);
 
 								if (id != 0)
-									stree[streeCount++] = e[i];
+									stree[streeCount++] = otherTree[i];
+								else
+									streeCount++;
 							}
 						}
 					}
-				}
-				else {
-					strees[id] = stree;
+				} else {// Thread is finished
+					strees[id] = &stree;
 					streeSize[id] = streeCount;
 
 					#pragma omp barrier
 
 					break;
 				}
-
 			}
-			for (; round < p; round *= 2) {
+
+			// those who fell out before the final round still have to wait for barriers
+			for (; round < 2 * p; round *= 2) {
 				#pragma omp barrier
 			}
 
@@ -126,7 +129,7 @@ public:
 				resultComp = comp;
 				resultSize = n - streeCount;
 			}
-		}
+		}//end omp parallel
 
 		for (int i = 0; i < n; i++) {
 			outVertexToComponent[i] = find(resultComp, i);

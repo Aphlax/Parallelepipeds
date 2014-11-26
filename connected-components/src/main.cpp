@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 	// ./a.exe bfs -g "graphs/g03.txt" -p 42
 	// all arguments are optional
 	int alg = 0;
-	string fileName = "graphs/graph03.txt";
+	string fileName = "graphs/graph01.txt";
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "bfs"))
 			alg = 0;
@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
 //		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
 	}
 
-	cout << "Number of components: " << nrComponents<< endl;
+	cout << "Number of components: " << nrComponents << endl;
 	cout << "Time elapsed: " << elapsed_seconds.count() << "s\n";
 
 	return 0;
