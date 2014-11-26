@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <ctype.h>
 #include <cstdlib>
@@ -130,11 +131,11 @@ int main(int argc, char* argv[]) {
 		}
 		else if (!strcmp(argv[i], "-p")) {// # threads selection
 			if (++i < argc) {
-				bool isNumber = true;
-				for(char* k = argv[i]; *k != 0 && isNumber; ++k)
-				    isNumber = isNumber && isdigit(*k);
-				if (isNumber) {
-					int p = 4;//= string::stoi(argv[i]);
+				std::istringstream iss(argv[i]);
+				int p;
+				if (iss >> p)
+				{
+					cout << "Set preffered number of threads to " << p << endl;
 					omp_set_num_threads(p);
 				}
 			}
