@@ -61,7 +61,7 @@ RandomGraph::RandomGraph(const std::vector<int> &sizeOfEachComponent, const doub
 			if (connect(vertexToVertices, r1, r2)) ++componentEdgeCount;
 		}
 		edgeCount += componentEdgeCount;
-		cout << "component " << i << " done" << endl;
+		//cout << "component " << i << " done" << endl;
 	}
 
 	randomize();
