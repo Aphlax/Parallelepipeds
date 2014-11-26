@@ -8,13 +8,13 @@
 
 #include "RandomGraph.h"
 #include "Bfs.cpp"
-#include "BoostCC.h"
+#include "Boost.cpp"
 #include "pBoost.cpp"
 #include "SerialUnionFind.h"
 #include "OpenMPCC.cpp"
 #include "SpanningTreeCC.cpp"
 #include "RandomizedContract.cpp"
-#include "OpenMPRandomizedContractingCC.cpp"
+#include "PRandomizedContract.cpp"
 #include "pBfsAtomic.cpp"
 
 #include <iostream>
@@ -26,6 +26,10 @@
 #include <chrono>
 #include <stdexcept>   // for exception, runtime_error, out_of_range
 #include <unordered_map>
+#include <omp.h>
+
+#include <emmintrin.h>
+
 using namespace std;
 
 void generateAndSaveGraph(const string& fileName) {
@@ -116,7 +120,7 @@ int main(int argc, char* argv[]) {
 			alg = 5;
 		else if (!strcmp(argv[i], "pstree"))
 			alg = 6;
-		else if (!strcmp(argv[i], "pcontract"))
+		else if (!strcmp(argv[i], "prandcontract"))
 			alg = 7;
 		else if (!strcmp(argv[i], "pbfsatomic"))
 			alg = 8;
@@ -135,6 +139,7 @@ int main(int argc, char* argv[]) {
 			}*/
 		}
 	}
+	cout << "Max number of openMP threads: " << omp_get_max_threads() << endl;
 
 	//ios_base::sync_with_stdio(false);
 
@@ -165,7 +170,7 @@ int main(int argc, char* argv[]) {
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 3) {// boost
     	cout << "boost\n";
-    	BoostCC cc;
+    	Boost cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 4) {// pboost
     	cout << "pboost\n";
@@ -179,15 +184,15 @@ int main(int argc, char* argv[]) {
     	cout << "pstree\n";
     	SpanningTreeCC cc;
     	cc.run(vertexCount, edges, vertexToComponent);
-    } else if (alg == 7) {// pcontract
-    	cout << "pbfsatomic\n";
-    	OpenMPRandomizedContractingCC cc;
+    } else if (alg == 7) {// prandcontract
+    	cout << "prandcontract\n";
+    	PRandomizedContract cc;
     	cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 8) {// pbfsatomic
     	cout << "pbfsatomic\n";
     	PBfsAtomic cc;
     	cc.run(vertexCount, edges, vertexToComponent);
-    }
+	}
 
 	//----------------------------------------------
 
@@ -198,7 +203,7 @@ int main(int argc, char* argv[]) {
 	std::vector<int> sizeOfComponent;
 	int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
 	for (int i = 0; i < componentCount; ++i) {
-		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
+//		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
 	}
 
 	cout << "Time elapsed: " << elapsed_seconds.count() << "s\n";

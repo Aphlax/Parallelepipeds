@@ -61,12 +61,14 @@ RandomGraph::RandomGraph(const std::vector<int> &sizeOfEachComponent, const doub
 			if (connect(vertexToVertices, r1, r2)) ++componentEdgeCount;
 		}
 		edgeCount += componentEdgeCount;
+		cout << "component " << i << " done" << endl;
 	}
 
 	randomize();
 }
 
 void RandomGraph::randomize() {
+	cout << "Randomizing" << endl;
 	vector<set<int> > randomizedVertexToVertices(vertexToVertices.size(), set<int>());
 
 	vector<int> shuffledIds;
