@@ -51,6 +51,28 @@ void generateAndSaveGraph(const string& fileName) {
 	cout << "Graph saved at: " << fileName << "\n";
 }
 
+vector<pair<int, int> > generateGraph(const int size, int* n, int* solution) {
+	vector<int> cs(3, 1);
+	cs.push_back(2);
+	cs.push_back(2);
+	cs.push_back(2);
+	cs.push_back(3);
+	cs.push_back(3);
+	cs.push_back(5);
+	cs.push_back(10);
+	cs.push_back(20);
+	cs.push_back(50);
+	for (int i = 0; i < size; ++i) {
+		cs.push_back(1000);
+	}
+	*solution = cs.size();
+	*n = 100 + size * 1000;
+
+	RandomGraph rg(cs, 10);
+
+	return rg.getEdgeList();
+}
+
 /**
  * Returns number of vertices. Filles edges vector.
  */
@@ -94,6 +116,64 @@ int findSizeOfComponent(const int vertexCount, const std::vector<int>& vertexToC
 	return outSizeOfComponent.size();
 }
 
+bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<int> &vertexToComponent, int solution, double *time) {
+	std::chrono::time_point<std::chrono::system_clock> start, end;
+	start = std::chrono::system_clock::now();
+	int nrComponents = 0;
+
+	//----------------------------------------------
+	//---------------Implementation-----------------
+	//----------------------------------------------
+	cout << "Running ";
+	if (alg == 0) {// bfs
+		cout << "bfs\n";
+		Bfs cc;
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
+	} else if (alg == 1) {// ufind
+		cout << "ufind\n";
+		SerialUnionFind cc;
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
+	} else if (alg == 2) {// randcontract
+		cout << "randcontract\n";
+		RandomizedContract cc;
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
+	} else if (alg == 3) {// boost
+		cout << "boost\n";
+		Boost cc;
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
+	} else if (alg == 4) {// pboost
+		cout << "pboost\n";
+		pBoost cc;
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
+	} else if (alg == 5) {// pbfs
+		cout << "pbfs\n";
+		OpenMPCC cc;
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
+	} else if (alg == 6) {// pstree
+		cout << "pstree\n";
+		SpanningTreeCC cc;
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
+	} else if (alg == 7) {// pcontract
+		cout << "pbfsatomic\n";
+		PRandomizedContract cc;
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
+	} else if (alg == 8) {// pbfsatomic
+		cout << "pbfsatomic\n";
+		PBfsAtomic cc;
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
+	}
+
+	//----------------------------------------------
+
+	end = std::chrono::system_clock::now();
+
+	std::chrono::duration<double> elapsed_seconds = end-start;
+
+	*time = elapsed_seconds.count();
+
+	return nrComponents == solution;
+}
+
 int main(int argc, char* argv[]) {
 
 	#ifdef __linux__
@@ -105,7 +185,9 @@ int main(int argc, char* argv[]) {
 	// ./a.exe bfs -g "graphs/g03.txt" -p 42
 	// all arguments are optional
 	int alg = 0;
+	int repetitions = 1;
 	string fileName = "graphs/graph01.txt";
+	vector<int> testVec(0);
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "bfs"))
 			alg = 0;
@@ -141,8 +223,32 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		else if (!strcmp(argv[i], "-h")) {
-			cout << "Algorithms: bfs, ufind, contract, boost\nParallel Algorithms: pboost, pbfs, pstree, pcontract\n";
+			cout << "Options:\n\t[String]\tAlgorithm selection\n\t-g [String]\tPath to graph file\n\t-p [Int]\tNumber of threads hint\n\t-h\t\tThis Message\n\t-t [Int]*\tTest performance with graphs of given sizes (*1000)\n\t-r [Int]\tRepetitions for tests";
+			cout << "Algorithms: bfs, ufind, contract, boost\nParallel Algorithms: pboost, pbfs, pstree, pcontract" << endl;
 			return 0;
+		}
+		else if (!strcmp(argv[i], "-t")) {// testing
+			while (++i < argc)
+			{
+				std::istringstream iss(argv[i]);
+				int p;
+				if (iss >> p)
+					testVec.push_back(p);
+				else {
+					--i;
+					break;
+				}
+			}
+		}
+		else if (!strcmp(argv[i], "-r")) {// repetitions for tests
+			if (++i < argc) {
+				std::istringstream iss(argv[i]);
+				int r;
+				if (iss >> r)
+				{
+					repetitions = r;
+				}
+			}
 		}
 		else {
 			cout << "Invalid algorithm: " << argv[i] << endl;
@@ -151,74 +257,49 @@ int main(int argc, char* argv[]) {
 	}
 	cout << "Max number of openMP threads: " << omp_get_max_threads() << endl;
 
-	//ios_base::sync_with_stdio(false);
-
-//	uncomment to generate other graphs
-//	generateAndSaveGraph(fileName);
 	vector<pair<int,int> > edges;
-	int vertexCount = readGraphFile(fileName, edges);
-	std::vector<int> vertexToComponent(vertexCount, -1);
+	int vertexCount = 0;
 	int nrComponents = 0;
 
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    start = std::chrono::system_clock::now();
+	if (testVec.size() == 0) {
+		double time = 0;
+		vertexCount = readGraphFile(fileName, edges);
+		std::vector<int> vertexToComponent(vertexCount, -1);
 
-	//----------------------------------------------
-	//---------------Implementation-----------------
-	//----------------------------------------------
-	cout << "Running ";
-    if (alg == 0) {// bfs
-    	cout << "bfs\n";
-    	Bfs cc;
-    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
-    } else if (alg == 1) {// ufind
-    	cout << "ufind\n";
-    	SerialUnionFind cc;
-    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
-    } else if (alg == 2) {// randcontract
-    	cout << "randcontract\n";
-    	RandomizedContract cc;
-    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
-    } else if (alg == 3) {// boost
-    	cout << "boost\n";
-    	Boost cc;
-    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
-    } else if (alg == 4) {// pboost
-    	cout << "pboost\n";
-    	pBoost cc;
-    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
-    } else if (alg == 5) {// pbfs
-    	cout << "pbfs\n";
-    	OpenMPCC cc;
-    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
-    } else if (alg == 6) {// pstree
-    	cout << "pstree\n";
-    	SpanningTreeCC cc;
-    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
-    } else if (alg == 7) {// pcontract
-    	cout << "pbfsatomic\n";
-    	PRandomizedContract cc;
-    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
-    } else if (alg == 8) {// pbfsatomic
-    	cout << "pbfsatomic\n";
-    	PBfsAtomic cc;
-    	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
-    }
+		runAlgo(alg, vertexCount, edges, vertexToComponent, 0, &time);
 
-	//----------------------------------------------
+	//	std::vector<int> sizeOfComponent;
+	//	int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
+	//	for (int i = 0; i < componentCount; ++i) {
+	//		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
+	//	}
 
-	end = std::chrono::system_clock::now();
-
-	std::chrono::duration<double> elapsed_seconds = end-start;
-
-	std::vector<int> sizeOfComponent;
-	int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
-	for (int i = 0; i < componentCount; ++i) {
-//		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
+		cout << "Time elapsed: " << time << "s\n";
+	} else {
+		int sol = 0;
+		int ok = 0;
+		vector<double> time(testVec.size());
+		for (int i = 0; i < testVec.size(); i++) {
+			edges = generateGraph(testVec[i], &vertexCount, &sol);
+			double t = 0;
+			for (int j = 0; j < repetitions; j++) {
+				std::vector<int> vertexToComponent(vertexCount, -1);
+				bool result = runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
+				ok += result ? 0 : 1;
+				time[i] += t;
+			}
+			time[i] = time[i] / 10;
+		}
+		if (ok == 0)
+			cout << "Test successful!" << endl;
+		else
+			cout << "Errors occured " << ok << " times!" << endl;
+		cout << "Timings:\n";
+		for (int i = 0; i < testVec.size(); i++) {
+			cout << "\t" << time[i];
+		}
+		cout << endl;
 	}
-
-	cout << "Number of components: " << nrComponents << endl;
-	cout << "Time elapsed: " << elapsed_seconds.count() << "s\n";
 
 	return 0;
 }
