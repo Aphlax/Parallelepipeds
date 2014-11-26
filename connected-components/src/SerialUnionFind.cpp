@@ -10,7 +10,7 @@
 using namespace std;
 
 // Returns the set of that element
-inline int find(vector<int> comp, int find) {
+inline int find(vector<int> &comp, int find) {
 	int last = -1;
 	while (comp[find] != find) {
 		if (last != -1)
@@ -18,10 +18,11 @@ inline int find(vector<int> comp, int find) {
 		last = find;
 		find = comp[find];
 	}
+	return find;
 }
 
 // Unions two sets
-inline void unio(vector<int> comp, int u, int v) {
+inline void unio(vector<int> &comp, int u, int v) {
 	if (u > v)
 		comp[u] = v;
 	else
@@ -32,6 +33,7 @@ int SerialUnionFind::run(const int numberOfVertices, const std::vector<std::pair
 	int n = numberOfVertices;
 	int m = edges.size();
 	vector<int> comp(n);
+	int compCount = n;
 	for (int i = 0; i < n; i++) {
 		comp[i] = i;
 	}
@@ -44,7 +46,7 @@ int SerialUnionFind::run(const int numberOfVertices, const std::vector<std::pair
 
 		if (u != v) {
 			unio(comp, u, v);
-			n--;
+			compCount--;
 		}
 	}
 
@@ -52,7 +54,7 @@ int SerialUnionFind::run(const int numberOfVertices, const std::vector<std::pair
 		outVertexToComponent[i] = find(comp, i);
 	}
 
-	return n;
+	return compCount;
 }
 
 
