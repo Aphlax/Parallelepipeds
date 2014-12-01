@@ -34,13 +34,13 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 
 
 	int edgesLeft = edges.size();
-	#ifdef __linux__
-		vector<unsigned int> seeds = vector<unsigned int>(omp_get_max_threads());
-		stack<pair<int,int> > s;
-		vector<vector<pair<int,int> > > contractedEdges = vector<vector<pair<int,int> > >(omp_get_max_threads(), vector<pair<int,int> >(0));
-		vector<vector<int> > contractedEdgesInIteration = vector<vector<int> >(omp_get_max_threads(), vector<int>(0));
-		for (int i = 0; i < omp_get_max_threads(); ++i) seeds[i] = i;
-	#endif
+
+	vector<unsigned int> seeds = vector<unsigned int>(omp_get_max_threads());
+	stack<pair<int,int> > s;
+	vector<vector<pair<int,int> > > contractedEdges = vector<vector<pair<int,int> > >(omp_get_max_threads(), vector<pair<int,int> >(0));
+	vector<vector<int> > contractedEdgesInIteration = vector<vector<int> >(omp_get_max_threads(), vector<int>(0));
+	for (int i = 0; i < omp_get_max_threads(); ++i) seeds[i] = i;
+
 
 	elapsed_seconds = std::chrono::system_clock::now()-start;
 	cout << "Checkpoint 1: " << elapsed_seconds.count() << "s\n";

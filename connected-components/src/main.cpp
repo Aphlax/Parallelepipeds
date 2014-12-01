@@ -281,13 +281,14 @@ int main(int argc, char* argv[]) {
 		std::vector<int> vertexToComponent(vertexCount, -1);
 
 		runAlgo(alg, vertexCount, edges, vertexToComponent, 0, &time);
+/*
+		std::vector<int> sizeOfComponent;
+		int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
+		for (int i = 0; i < componentCount; ++i) {
+			cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
 
-	//	std::vector<int> sizeOfComponent;
-	//	int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
-	//	for (int i = 0; i < componentCount; ++i) {
-	//		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
-	//	}
-
+	}
+*/
 		cout << "Time elapsed: " << time << "s\n";
 	} else if (testG.size() != 0) {
 		int sol = 0;

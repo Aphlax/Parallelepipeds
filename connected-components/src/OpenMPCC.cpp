@@ -43,8 +43,6 @@ class OpenMPCC {
 		start = std::chrono::system_clock::now();
 
 		std::vector<set<int> > mergeMapArray[10] ;
-		//std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
-
 
 		int size = graph.size();
 		#pragma omp parallel //shared(outVertexToComponent)
@@ -78,8 +76,6 @@ class OpenMPCC {
 						}
 						else if(outVertexToComponent[next]!= compMark)
 						{
-							//if(compMark==0)cout << next << endl;
-
 							outVertexToComponent[next] = compMark;
 							q.push(next);
 						}
