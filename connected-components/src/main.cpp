@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
 		}
 		else if (!strcmp(argv[i], "-h")) {
 			cout << "Options:\n\t[String]\tAlgorithm selection\n\t-g [String]\tPath to graph file\n\t-p [Int]\tNumber of threads hint\n\t-h\t\tThis Message\n\t-tg [Int]*\tTest performance with graphs of given sizes (*1000)\n\t-tp [Int]*\tTest performance with given number of threads\n\t-r [Int]\tRepetitions for tests\n";
-			cout << "Algorithms: bfs, ufind, contract, boost\nParallel Algorithms: pboost, pbfs, pstree, pcontract" << endl;
+			cout << "Algorithms: bfs, ufind, randcontract, boost\nParallel Algorithms: pboost, pbfs, pbfsatomic, pstree, prandcontract" << endl;
 			return 0;
 		}
 		else if (!strcmp(argv[i], "-tg")) {// testing graphs
@@ -286,9 +286,9 @@ int main(int argc, char* argv[]) {
 		int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
 		for (int i = 0; i < componentCount; ++i) {
 			cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
-
-	}
+		}
 */
+
 		cout << "Time elapsed: " << time << "s\n";
 	} else if (testG.size() != 0) {
 		int sol = 0;
@@ -325,6 +325,7 @@ int main(int argc, char* argv[]) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
 				bool result = runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
 				time[i] += t;
+				cout << "Run completed in time: " << t << "s" << endl;
 			}
 			time[i] = time[i] / repetitions;
 		}

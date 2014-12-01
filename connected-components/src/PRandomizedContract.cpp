@@ -41,7 +41,6 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 	vector<vector<int> > contractedEdgesInIteration = vector<vector<int> >(omp_get_max_threads(), vector<int>(0));
 	for (int i = 0; i < omp_get_max_threads(); ++i) seeds[i] = i;
 
-
 	elapsed_seconds = std::chrono::system_clock::now()-start;
 	cout << "Checkpoint 1: " << elapsed_seconds.count() << "s\n";
 	start = std::chrono::system_clock::now();
