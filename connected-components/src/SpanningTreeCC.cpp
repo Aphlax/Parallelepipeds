@@ -65,10 +65,12 @@ public:
 			#pragma omp barrier // First round
 
 			{
+				// split up edges: each thread processes a subset of the edges
 				int s0 = id * (m / p);
 				int e0 = id == p - 1 ? m : (id + 1)*(m / p);
 
-
+				// run union find for these edges and keep a spanning tree up to date
+				// (thread 0 does not need that, only needed for sending results to other threads.)
 				for (int i = s0; i < e0; i++) {
 					int u = e[i].first;
 					int v = e[i].second;
@@ -91,8 +93,10 @@ public:
 			for (; round < 2 * p; round *= 2) {
 				if (id % round == 0) {
 					#pragma omp barrier
+					// 'receive' spanning tree from other thread and add the edges to the current result
+					// (by continuing union find with these additional edges.)
 					int otherId = id + round / 2;
-					if (otherId < p) {
+					if (otherId < p) {// this check is needed if #processors is not a power of 2
 						vector<pair<int, int> > otherTree = *strees[otherId];
 						int otherCount = streeSize[otherId];
 
