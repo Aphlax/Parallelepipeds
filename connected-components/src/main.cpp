@@ -20,7 +20,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <iomanip>
+//#include <iomanip>
 #include <string>
 #include <ctype.h>
 #include <cstdlib>
@@ -296,23 +296,27 @@ int main(int argc, char* argv[]) {
 
 	} else if (testG.size() != 0) { // test with various sized graphs
 
-		int sol = 0;
+		int sol = 0, pos = -1;
 		vector<double> time(testG.size());
+		if (testFiles) {
+			pos = fileName.find("#");
+			if (pos == -1 || pos == fileName.length() - 1) {
+				cout << "You have to specify a filename with a # in it. (-tf requires -g)" << endl;
+				return 0;
+			}
+		}
 		for (int i = 0; i < testG.size(); i++) {
 			if (!testFiles) // generate graph
 				edges = generateGraph(testG[i], &vertexCount, &sol);
 			else {// load graph from file
-				int pos = fileName.find("#");
-				if (pos == -1 || pos == fileName.length() - 1) {
-					cout << "You have to specify a filename with a # in it. (-tf requires -g)" << endl;
-					return 0;
-				}
 				stringstream ss;
-				ss << setw(2) << setfill('0') << testG[i];
+				//ss << setw(2) << setfill('0') << testG[i];
+				if (testG[i] < 10)
+					ss << 0;
+				ss << testG[i];
 				string fname = fileName.substr(0, pos) + ss.str() + fileName.substr(pos + 1);
 				vertexCount = readGraphFile(fname, edges);
 			}
-
 
 			double t = 0;
 			for (int j = 0; j < repetitions; j++) {
