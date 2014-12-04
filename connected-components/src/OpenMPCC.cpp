@@ -11,7 +11,7 @@
 #include <tuple>
 #include <ctime>
 #include <chrono>
-
+#include "StopWatch.cpp"
 
 using namespace std;
 using namespace boost;
@@ -22,7 +22,8 @@ class OpenMPCC {
 
 	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
 
-		start = std::chrono::system_clock::now();
+		StopWatch stopWatch;
+		stopWatch.start();
 
 		cout << "openMPCC started." << endl;
 		std::vector<std::vector<int> > graph(numberOfVertices, std::vector<int>());
@@ -37,10 +38,8 @@ class OpenMPCC {
 				graph[edges[i].second].push_back(edges[i].first);
 			}
 		}
-		end = std::chrono::system_clock::now();
-		elapsed_seconds = end-start;
-		cout << "graph generating time: " << elapsed_seconds.count() << "s\n";
-		start = std::chrono::system_clock::now();
+
+		cout << "graph generating time: " << stopWatch.checkPoint() << "s\n";
 
 		std::vector<set<int> > mergeMapArray[10] ;
 
@@ -82,26 +81,8 @@ class OpenMPCC {
 					}
 				}
 			}
-			for(int i=0;i<beginningNode.size();i++)
-			{
-				if(beginningNode[i]!= outVertexToComponent[beginningNode[i]])
-				{
-					int m,n;
-					if(beginningNode[i]>outVertexToComponent[i])
-					{	m= outVertexToComponent[i]; n = beginningNode[i];}
-					else
-					{	n= outVertexToComponent[i]; m = beginningNode[i];}
-					mergeMapArray[tn][m].insert(n);
-					//cout << "found "<< m << " " << n << endl;
-				}
-			}
 		}
-		end = std::chrono::system_clock::now();
-		elapsed_seconds = end-start;
-		cout << "Main time: " << elapsed_seconds.count() << "s\n";
-
-
-		start = std::chrono::system_clock::now();
+		cout << "Main time: " << stopWatch.checkPoint() << "s\n";
 
 		std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
 		//merge the mergeMaps
@@ -158,10 +139,7 @@ class OpenMPCC {
 		{
 			outVertexToComponent[i]  = finalCompNr[outVertexToComponent[i]];
 		}
-
-		end = std::chrono::system_clock::now();
-		elapsed_seconds = end-start;
-		cout << "merge time: " << elapsed_seconds.count() << "s\n";
+		cout << "merge time: " << stopWatch.checkPoint() << "s\n";
 		return componentCount;
 	}
 };
