@@ -19,3 +19,8 @@ Week 2
 ======
 
 - Presentation
+
+Week 6
+======
+
+- Reach ballmer's peak

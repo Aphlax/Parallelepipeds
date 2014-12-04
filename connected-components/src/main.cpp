@@ -20,6 +20,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 #include <string>
 #include <ctype.h>
 #include <cstdlib>
@@ -186,6 +187,7 @@ int main(int argc, char* argv[]) {
 	// all arguments are optional
 	int alg = 0;
 	string fileName = "graphs/graph01.txt";
+	bool testFiles = false;
 	vector<int> testG(0);
 	vector<int> testP(0);
 	int repetitions = 1;
@@ -224,11 +226,12 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		else if (!strcmp(argv[i], "-h")) {
-			cout << "Options:\n\t[String]\tAlgorithm selection\n\t-g [String]\tPath to graph file\n\t-p [Int]\tNumber of threads hint\n\t-h\t\tThis Message\n\t-tg [Int]*\tTest performance with graphs of given sizes (*1000)\n\t-tp [Int]*\tTest performance with given number of threads\n\t-r [Int]\tRepetitions for tests\n";
+			cout << "Options:\n\t[String]\tAlgorithm selection\n\t-g [String]\tPath to graph file\n\t-p [Int]\tNumber of threads hint\n\t-h\t\tThis Message\n\t-tg [Int]*\tTest performance with graphs of given sizes (*1000)\n\t-tf [Int]*\tTest performance with multiple graph files. Requires -g option to be set and the name\n\t\t\tmust contain the character # (which is then replaced with the given integers as two digits)\n\t-tp [Int]*\tTest performance with given number of threads\n\t-r [Int]\tRepetitions for tests\n";
 			cout << "Algorithms: bfs, ufind, randcontract, boost\nParallel Algorithms: pboost, pbfs, pbfsatomic, pstree, prandcontract" << endl;
 			return 0;
 		}
-		else if (!strcmp(argv[i], "-tg")) {// testing graphs
+		else if (!strcmp(argv[i], "-tg") || !strcmp(argv[i], "-tf")) {// testing graphs w/wo files
+			testFiles = !strcmp(argv[i], "-tf");
 			while (++i < argc)
 			{
 				std::istringstream iss(argv[i]);
@@ -274,7 +277,7 @@ int main(int argc, char* argv[]) {
 	int vertexCount = 0;
 	int nrComponents = 0;
 
-	if (testG.size() == 0 && testP.size() == 0) {
+	if (testG.size() == 0 && testP.size() == 0) { // single run!
 		cout << "Max number of openMP threads: " << omp_get_max_threads() << endl;
 		double time = 0;
 		vertexCount = readGraphFile(fileName, edges);
@@ -290,31 +293,43 @@ int main(int argc, char* argv[]) {
 */
 
 		cout << "Time elapsed: " << time << "s\n";
-	} else if (testG.size() != 0) {
+
+	} else if (testG.size() != 0) { // test with various sized graphs
+
 		int sol = 0;
-		int ok = 0;
 		vector<double> time(testG.size());
 		for (int i = 0; i < testG.size(); i++) {
-			edges = generateGraph(testG[i], &vertexCount, &sol);
+			if (!testFiles) // generate graph
+				edges = generateGraph(testG[i], &vertexCount, &sol);
+			else {// load graph from file
+				int pos = fileName.find("#");
+				if (pos == -1 || pos == fileName.length() - 1) {
+					cout << "You have to specify a filename with a # in it. (-tf requires -g)" << endl;
+					return 0;
+				}
+				stringstream ss;
+				ss << setw(2) << setfill('0') << testG[i];
+				string fname = fileName.substr(0, pos) + ss.str() + fileName.substr(pos + 1);
+				vertexCount = readGraphFile(fname, edges);
+			}
+
+
 			double t = 0;
 			for (int j = 0; j < repetitions; j++) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
 				bool result = runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
-				ok += result ? 0 : 1;
 				time[i] += t;
 			}
 			time[i] = time[i] / repetitions;
 		}
-		if (ok == 0)
-			cout << "Test successful!" << endl;
-		else
-			cout << "Errors occured " << ok << " times!" << endl;
 		cout << "Timings:\n";
 		for (int i = 0; i < testG.size(); i++) {
 			cout << "\t" << time[i];
 		}
 		cout << endl;
-	} else { // testP nonempty
+
+	} else { // testP nonempty, test with different amounts of threads
+
 		int sol = 10;
 		vector<double> time(testP.size());
 		vertexCount = readGraphFile(fileName, edges);
