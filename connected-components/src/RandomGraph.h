@@ -25,6 +25,7 @@ public:
 	std::string toString();
 	int getEdgeCount();
 	std::vector<std::set<int> >* getGraphDatastructure();
+	std::vector<std::pair<int, int> > getEdgeList();
 };
 
 #endif
