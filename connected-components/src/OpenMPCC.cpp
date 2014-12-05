@@ -33,7 +33,7 @@ class OpenMPCC {
 			//int tn = omp_get_thread_num();
 			//nt = omp_get_num_threads();
 			int size = edges.size();
-			for (unsigned int i = 0; i < size; ++i) {
+			for (int i = 0; i < size; ++i) {
 				graph[edges[i].first].push_back(edges[i].second);
 				graph[edges[i].second].push_back(edges[i].first);
 			}
@@ -88,7 +88,7 @@ class OpenMPCC {
 		//merge the mergeMaps
 		for(int i=0;i<nt;i++)
 		{
-			for(int j=0;j<graph.size();j++)
+			for(unsigned int j=0;j<graph.size();j++)
 			{
 				mergeMap[j].insert(mergeMapArray[i][j].begin(), mergeMapArray[i][j].end());
 			}
@@ -103,7 +103,7 @@ class OpenMPCC {
 				set<int> mergeSet;
 				for(set<int>::iterator it = mergeMap[i].begin(); it!=mergeMap[i].end() ;it++)
 				{
-					if(not mergeMap[*it].empty() && *it != i)
+					if(not mergeMap[*it].empty() && *it != (int)i)
 					{
 						mergeSet.insert(mergeMap[*it].begin(),mergeMap[*it].end());
 						mergeMap[*it].clear();

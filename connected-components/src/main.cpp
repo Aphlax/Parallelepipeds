@@ -283,7 +283,6 @@ int main(int argc, char* argv[]) {
 
 	vector<pair<int,int> > edges;
 	int vertexCount = 0;
-	int nrComponents = 0;
 
 	if (testG.size() == 0 && testP.size() == 0) { // single run!
 		cout << "Max number of openMP threads: " << omp_get_max_threads() << endl;
@@ -308,12 +307,12 @@ int main(int argc, char* argv[]) {
 		vector<double> time(testG.size());
 		if (testFiles) {
 			pos = fileName.find("#");
-			if (pos == -1 || pos == fileName.length() - 1) {
+			if (pos == -1 || pos == ((int)fileName.length()) - 1) {
 				cout << "You have to specify a filename with a # in it. (-tf requires -g)" << endl;
 				return 0;
 			}
 		}
-		for (int i = 0; i < testG.size(); i++) {
+		for (unsigned int i = 0; i < testG.size(); i++) {
 			if (!testFiles) // generate graph
 				edges = generateGraph(testG[i], &vertexCount, &sol);
 			else {// load graph from file
@@ -329,13 +328,13 @@ int main(int argc, char* argv[]) {
 			double t = 0;
 			for (int j = 0; j < repetitions; j++) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
-				bool result = runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
+				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
 				time[i] += t;
 			}
 			time[i] = time[i] / repetitions;
 		}
 		cout << "Timings:\n";
-		for (int i = 0; i < testG.size(); i++) {
+		for (unsigned int i = 0; i < testG.size(); i++) {
 			cout << "\t" << time[i];
 		}
 		cout << endl;
@@ -345,19 +344,19 @@ int main(int argc, char* argv[]) {
 		int sol = 10;
 		vector<double> time(testP.size());
 		vertexCount = readGraphFile(fileName, edges);
-		for (int i = 0; i < testP.size(); i++) {
+		for (unsigned int i = 0; i < testP.size(); i++) {
 			omp_set_num_threads(testP[i]);
 			double t = 0;
 			for (int j = 0; j < repetitions; j++) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
-				bool result = runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
+				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
 				time[i] += t;
 				cout << "Run completed in time: " << t << "s" << endl;
 			}
 			time[i] = time[i] / repetitions;
 		}
 		cout << "Timings:\n";
-		for (int i = 0; i < testP.size(); i++) {
+		for (unsigned int i = 0; i < testP.size(); i++) {
 			cout << "\t" << time[i];
 		}
 		cout << endl;
