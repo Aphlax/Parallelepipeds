@@ -10,8 +10,8 @@
 using namespace std;
 using namespace boost;
 
-typedef adjacency_list<vecS, vecS, undirectedS> Graph;
-typedef graph_traits<Graph>::vertex_descriptor Vertex;
+typedef adjacency_list<vecS, vecS, undirectedS> GraphS;
+typedef graph_traits<GraphS>::vertex_descriptor VertexS;
 
 class Boost {
 
@@ -20,7 +20,7 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 		std::chrono::duration<double> elapsed_seconds;
 		start = std::chrono::system_clock::now();
 
-		Graph g(numberOfVertices);
+		GraphS g(numberOfVertices);
 		for (unsigned int i = 0; i < edges.size(); ++i) {
 			add_edge(edges[i].first, edges[i].second,g);
 		}

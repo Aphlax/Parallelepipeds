@@ -203,16 +203,16 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 	elapsed_seconds = std::chrono::system_clock::now()-start;
 	cout << "Checkpoin 2: " << elapsed_seconds.count() << "s\n";
 	start = std::chrono::system_clock::now();
-	vector<int> contractedEdgeCounter = vector<int>(omp_get_max_threads(), 0);
-	for (int i = contractedEdgesInIteration.size() - 1; i >= 0; --i) {
-
-	}
-
-//	while (!s.empty()) {
-//		pair<int,int> e = s.top();
-//		s.pop();
-//		L[e.second] = L[e.first];
+//	vector<int> contractedEdgeCounter = vector<int>(omp_get_max_threads(), 0);
+//	for (int i = contractedEdgesInIteration.size() - 1; i >= 0; --i) {
+//
 //	}
+
+	while (!s.empty()) {
+		pair<int,int> e = s.top();
+		s.pop();
+		L[e.second] = L[e.first];
+	}
 
 	elapsed_seconds = std::chrono::system_clock::now()-start;
 	cout << "Last checkpoint: " << elapsed_seconds.count() << "s\n";

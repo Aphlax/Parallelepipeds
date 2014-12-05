@@ -58,7 +58,7 @@ class PBfsAtomic {
 			nt = omp_get_num_threads();
 			std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
 			mergeMapArray[tn] = mergeMap;
-			queue<int> q;
+			std::queue<int> q;
 			#pragma omp for
 			for (int i = 0; i < graph.size(); ++i) {
 				if (vertexToComponentAtomic[i].load() >= 0) continue;

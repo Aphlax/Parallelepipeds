@@ -55,7 +55,7 @@ class OpenMPCC {
 			std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
 			std::vector<int> beginningNode;
 			mergeMapArray[tn] = mergeMap;
-			queue<int> q;
+			std::queue<int> q;
 			//#pragma omp for
 			for (int i = tn*workLoad; i < (tn+1)*workLoad; ++i) {
 				if (outVertexToComponent[i] >= 0) continue;

@@ -9,7 +9,7 @@
 #include "RandomGraph.h"
 #include "Bfs.cpp"
 #include "Boost.cpp"
-#include "pBoost.cpp"
+#include "PBoost.h"
 #include "SerialUnionFind.h"
 #include "OpenMPCC.cpp"
 #include "SpanningTreeCC.cpp"
@@ -28,6 +28,7 @@
 #include <stdexcept>   // for exception, runtime_error, out_of_range
 #include <unordered_map>
 #include <omp.h>
+#include <mpi.h>
 
 #include <emmintrin.h>
 
@@ -41,7 +42,7 @@ void generateAndSaveGraph(const string& fileName) {
 	int connectivity = 10;
 	vector<int> sizeOfEachComponent;
 	for (int i = 0; i < 10; ++i) {
-		sizeOfEachComponent.push_back(100000 * (i + 1));
+		sizeOfEachComponent.push_back(50000 * (i + 1));
 	}
 	RandomGraph r(sizeOfEachComponent, connectivity);
 
@@ -71,7 +72,7 @@ int readGraphFile(const string& fileName, vector<pair<int, int> > &outEdges) {
 		outEdges.push_back(pair<int, int>(firstInt, secondInt));
 	}
 	myfile.close();
-	cout << "Graph at: " << fileName << " was read.\n";
+	cout << "Graph at: " << fileName << " was read. Graph has "<< vectorCount << " vertices and " << outEdges.size() << " edges.\n";
 	return vectorCount;
 }
 
@@ -150,6 +151,13 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	cout << "Max number of openMP threads: " << omp_get_max_threads() << endl;
+	int mpiThreadCount;
+	MPI_Init(0,0);
+	MPI_Comm_size(MPI_COMM_WORLD, &mpiThreadCount);
+	MPI_Finalize();
+	cout << "Max number of MPI threads: " << mpiThreadCount << endl;
+
+
 
 	//ios_base::sync_with_stdio(false);
 
@@ -185,7 +193,7 @@ int main(int argc, char* argv[]) {
     	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 4) {// pboost
     	cout << "pboost\n";
-    	pBoost cc;
+    	PBoost cc;
     	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 5) {// pbfs
     	cout << "pbfs\n";
@@ -196,7 +204,7 @@ int main(int argc, char* argv[]) {
     	SpanningTreeCC cc;
     	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 7) {// pcontract
-    	cout << "pbfsatomic\n";
+    	cout << "pcontract\n";
     	PRandomizedContract cc;
     	nrComponents = cc.run(vertexCount, edges, vertexToComponent);
     } else if (alg == 8) {// pbfsatomic
@@ -214,7 +222,7 @@ int main(int argc, char* argv[]) {
 	std::vector<int> sizeOfComponent;
 	int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
 	for (int i = 0; i < componentCount; ++i) {
-//		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
+		cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
 	}
 
 	cout << "Number of components: " << nrComponents << endl;
