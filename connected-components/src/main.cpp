@@ -16,6 +16,7 @@
 #include "RandomizedContract.cpp"
 #include "PRandomizedContract.cpp"
 #include "pBfsAtomic.cpp"
+#include "ObjConverter.cpp"
 
 #include <iostream>
 #include <fstream>
@@ -180,8 +181,13 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 	return nrComponents == solution;
 }
 
-int main(int argc, char* argv[]) {
+//int main(int argc, char* argv[]) {
+//	ObjConverter objToGraph;
+//	objToGraph.convert("graphs/space_station.obj", "graphs/space_station.txt");
+//	return 0;
+//}
 
+int main(int argc, char* argv[]) {
 	MPI_Init(0,0);
 
 	// Argument parsing
