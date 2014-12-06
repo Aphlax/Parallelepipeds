@@ -35,6 +35,9 @@
 
 using namespace std;
 
+int mpiThreadCount;
+int mpiProcessRank;
+
 void generateAndSaveGraph(const string& fileName) {
 	ofstream myfile(fileName.c_str());
 
@@ -126,7 +129,7 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 	//----------------------------------------------
 	//---------------Implementation-----------------
 	//----------------------------------------------
-	cout << "Running ";
+	if (mpiProcessRank == 0) cout << "Running ";
 	if (alg == 0) {// bfs
 		cout << "bfs\n";
 		Bfs cc;
@@ -144,7 +147,7 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 		Boost cc;
 		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
 	} else if (alg == 4) {// pboost
-		cout << "pboost\n";
+		if (mpiProcessRank == 0) cout << "pboost\n";
 		PBoost cc;
 		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
 	} else if (alg == 5) {// pbfs
@@ -178,11 +181,8 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 
 int main(int argc, char* argv[]) {
 
-	#ifdef __linux__
-		cout << "Running on linux\n";
-	#elif _WIN32
-		cout << "Not running on linux\n";
-	#endif
+	MPI_Init(0,0);
+
 	// Argument parsing
 	// ./a.exe bfs -g "graphs/g03.txt" -p 42
 	// all arguments are optional
@@ -273,33 +273,44 @@ int main(int argc, char* argv[]) {
 			return 0;
 		}
 	}
-	cout << "Max number of openMP threads: " << omp_get_max_threads() << endl;
-	int mpiThreadCount;
-	MPI_Init(0,0);
+
 	MPI_Comm_size(MPI_COMM_WORLD, &mpiThreadCount);
-	MPI_Finalize();
-	cout << "Max number of MPI threads: " << mpiThreadCount << endl;
+	MPI_Comm_rank (MPI_COMM_WORLD, &mpiProcessRank);
+
 
 
 	vector<pair<int,int> > edges;
 	int vertexCount = 0;
 
 	if (testG.size() == 0 && testP.size() == 0) { // single run!
-		cout << "Max number of openMP threads: " << omp_get_max_threads() << endl;
+		if (mpiProcessRank == 0) {
+			#ifdef __linux__
+				cout << "Running on linux\n";
+			#elif _WIN32
+				cout << "Not running on linux\n";
+			#endif
+
+			cout << "Max number of openMP threads: " << omp_get_max_threads() << endl;
+			cout << "Max number of MPI threads: " << mpiThreadCount << endl;
+			vertexCount = readGraphFile(fileName, edges);
+
+		}
+		if (mpiThreadCount > 1) {
+			// multiple processes. need to brodcast vertexCount
+			MPI_Bcast(&vertexCount, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		}
 		double time = 0;
-		vertexCount = readGraphFile(fileName, edges);
 		std::vector<int> vertexToComponent(vertexCount, -1);
 
 		runAlgo(alg, vertexCount, edges, vertexToComponent, 0, &time);
-/*
-		std::vector<int> sizeOfComponent;
-		int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
-		for (int i = 0; i < componentCount; ++i) {
-			cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
+		if (mpiProcessRank == 0) {
+			std::vector<int> sizeOfComponent;
+			int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
+			for (int i = 0; i < componentCount; ++i) {
+				cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
+			}
+			cout << "Time elapsed: " << time << "s\n";
 		}
-*/
-
-		cout << "Time elapsed: " << time << "s\n";
 
 	} else if (testG.size() != 0) { // test with various sized graphs
 
@@ -313,34 +324,42 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		for (unsigned int i = 0; i < testG.size(); i++) {
-			if (!testFiles) // generate graph
-				edges = generateGraph(testG[i], &vertexCount, &sol);
-			else {// load graph from file
-				stringstream ss;
-				//ss << setw(2) << setfill('0') << testG[i];
-				if (testG[i] < 10)
-					ss << 0;
-				ss << testG[i];
-				string fname = fileName.substr(0, pos) + ss.str() + fileName.substr(pos + 1);
-				vertexCount = readGraphFile(fname, edges);
+			if (mpiProcessRank == 0) {
+				if (!testFiles) // generate graph
+					edges = generateGraph(testG[i], &vertexCount, &sol);
+				else {// load graph from file
+					stringstream ss;
+					//ss << setw(2) << setfill('0') << testG[i];
+					if (testG[i] < 10)
+						ss << 0;
+					ss << testG[i];
+					string fname = fileName.substr(0, pos) + ss.str() + fileName.substr(pos + 1);
+					vertexCount = readGraphFile(fname, edges);
+				}
+			}
+			if (mpiThreadCount > 1) {
+				// multiple processes. need to brodcast vertexCount
+				MPI_Bcast(&vertexCount, 1, MPI_INT, 0, MPI_COMM_WORLD);
 			}
 
 			double t = 0;
 			for (int j = 0; j < repetitions; j++) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
 				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
-				time[i] += t;
+				if (mpiProcessRank == 0) time[i] += t;
 			}
-			time[i] = time[i] / repetitions;
+			if (mpiProcessRank == 0) time[i] = time[i] / repetitions;
 		}
-		cout << "Timings:\n";
-		for (unsigned int i = 0; i < testG.size(); i++) {
-			cout << "\t" << time[i];
+		if (mpiProcessRank == 0)  {
+			cout << "Timings:\n";
+			for (unsigned int i = 0; i < testG.size(); i++) {
+				cout << "\t" << time[i];
+			}
+			cout << endl;
 		}
-		cout << endl;
 
 	} else { // testP nonempty, test with different amounts of threads
-
+		// this assumes non-mpi, no need to put mpi checks
 		int sol = 10;
 		vector<double> time(testP.size());
 		vertexCount = readGraphFile(fileName, edges);
@@ -362,5 +381,6 @@ int main(int argc, char* argv[]) {
 		cout << endl;
 	}
 
+	MPI_Finalize();
 	return 0;
 }
