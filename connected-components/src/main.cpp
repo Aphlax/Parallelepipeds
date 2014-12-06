@@ -33,6 +33,7 @@
 
 #include <emmintrin.h>
 
+
 using namespace std;
 
 int mpiThreadCount;
@@ -381,6 +382,60 @@ int main(int argc, char* argv[]) {
 		cout << endl;
 	}
 
+
+#ifdef __linux__
+	MPI_Barrier(MPI_COMM_WORLD);
+	// for memory measurements
+	ifstream statusFile("/proc/self/status");
+	if (!statusFile.is_open()) throw std::runtime_error ("Unable to open status file for memory measurments");
+
+	string line;
+	while (getline(statusFile, line)) {
+//		if (mpiProcessRank == 0) cout << line << endl;
+		if (strncmp(line.c_str(), "VmHWM:", 6) == 0) {
+			if (mpiProcessRank == 0)  {
+				cout << "Process " << mpiProcessRank << " peak mem usage: " << line.substr(6) << endl;
+
+				for (int i = 1; i < mpiThreadCount; ++i) {
+					MPI_Status status;
+					MPI_Probe(i, 0, MPI_COMM_WORLD, &status);
+					int l;
+					MPI_Get_count(&status, MPI_CHAR, &l);
+					char *buf = new char[l];
+					MPI_Recv(buf, l, MPI_CHAR, i, 0, MPI_COMM_WORLD, &status);
+					cout << "Process " << i << " peak mem usage: " << buf << endl;
+					delete [] buf;
+				}
+			} else {
+				string msg = line.substr(6);
+				MPI_Send((void*)msg.c_str(), msg.size(), MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+			}
+//			break;
+		}
+		if (strncmp(line.c_str(), "VmSwap:", 7) == 0) {
+			if (mpiProcessRank == 0)  {
+				cout << "Process " << mpiProcessRank << " swap mem usage: " << line.substr(7) << endl;
+
+				for (int i = 1; i < mpiThreadCount; ++i) {
+					MPI_Status status;
+					MPI_Probe(i, 1, MPI_COMM_WORLD, &status);
+					int l;
+					MPI_Get_count(&status, MPI_CHAR, &l);
+					char *buf = new char[l];
+					MPI_Recv(buf, l, MPI_CHAR, i, 1, MPI_COMM_WORLD, &status);
+					cout << "Process " << i << " swap mem usage: " << buf << endl;
+					delete [] buf;
+				}
+			} else {
+				string msg = line.substr(7);
+				MPI_Send((void*)msg.c_str(), msg.size(), MPI_CHAR, 0, 1, MPI_COMM_WORLD);
+			}
+//			break;
+		}
+	}
+	statusFile.close();
+#endif
 	MPI_Finalize();
+
 	return 0;
 }
