@@ -6,17 +6,15 @@
 #include <iostream>
 #include <queue>
 #include <algorithm>
-#include <ctime>
-#include <chrono>
+#include "StopWatch.cpp"
 
 using namespace std;
 
 class RandomizedContract {
 
 	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &L) {
-	    std::chrono::time_point<std::chrono::system_clock> start, end;
-	    std::chrono::duration<double> elapsed_seconds;
-	    start = std::chrono::system_clock::now();
+		StopWatch stopWatch;
+		stopWatch.start(stopWatch.inputProcessing);
 		const int HEAD = 0;
 		const int TAIL = 1;
 
@@ -29,9 +27,8 @@ class RandomizedContract {
 		#ifdef __linux__
 			unsigned int seed = 0;
 		#endif
-		elapsed_seconds = std::chrono::system_clock::now()-start;
-		cout << "Checkpoint 1: " << elapsed_seconds.count() << "s\n";
-		start = std::chrono::system_clock::now();
+		cout << "Checkpoint 1: " << stopWatch.stop(stopWatch.inputProcessing) << "s\n";
+		stopWatch.start(stopWatch.mainSection);
 
 		stack<pair<int,int> > s;
 		for (int iteration = 0; edgesLeft > 0; ++iteration) {
@@ -96,18 +93,15 @@ class RandomizedContract {
 //			for (int i = 0; i < numberOfVertices; ++i) cout << i << ":" << L[i] << ", ";
 //			cout << endl << "iterate " << endl;
 		}
-		elapsed_seconds = std::chrono::system_clock::now()-start;
-		cout << "Checkpoin 2: " << elapsed_seconds.count() << "s\n";
-		start = std::chrono::system_clock::now();
+		cout << "Checkpoin 2: " << stopWatch.stop(stopWatch.mainSection) << "s\n";
+		stopWatch.start(stopWatch.merging);
 		while (!s.empty()) {
 			pair<int,int> e = s.top();
 			s.pop();
 			L[e.second] = L[e.first];
 		}
 
-		elapsed_seconds = std::chrono::system_clock::now()-start;
-		cout << "Last checkpoint: " << elapsed_seconds.count() << "s\n";
-		start = std::chrono::system_clock::now();
+		cout << "Last checkpoint: " << stopWatch.stop(stopWatch.merging) << "s\n";
 
 		return 0;
 	}

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <queue>
 #include <omp.h>
+#include "StopWatch.cpp"
 
 using namespace std;
 
@@ -41,7 +42,8 @@ public:
 		vector<int> streeSize;
 		vector<int> resultComp;
 		int resultSize;
-
+		StopWatch stopWatch;
+		stopWatch.start(stopWatch.mainSection);
 		#pragma omp parallel shared(strees, streeSize, resultComp, resultSize)
 		{
 			// Initialisation
@@ -142,6 +144,7 @@ public:
 			outVertexToComponent[i] = find(resultComp, i);
 		}
 
+		stopWatch.stop(stopWatch.mainSection);
 		return resultSize;
 	}
 
