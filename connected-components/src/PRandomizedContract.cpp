@@ -197,9 +197,14 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 
 	}
 
-	vector<int> contractedEdgeCounter = vector<int>(omp_get_max_threads(), 0);
-	for (int i = contractedEdgesInIteration.size() - 1; i >= 0; --i) {
+	//vector<int> contractedEdgeCounter = vector<int>(omp_get_max_threads(), 0);
+	//for (int i = contractedEdgesInIteration.size() - 1; i >= 0; --i) {
 
+
+	while (!s.empty()) {
+		pair<int,int> e = s.top();
+		s.pop();
+		L[e.second] = L[e.first];
 	}
 
 //	while (!s.empty()) {
@@ -209,6 +214,7 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 //	}
 
 	cout << "Last checkpoint: " << stopWatch.stop(stopWatch.mainSection) << "s\n";
+
 
 	return 0;
 }

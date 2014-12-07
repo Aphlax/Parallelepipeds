@@ -9,13 +9,14 @@
 #include "RandomGraph.h"
 #include "Bfs.cpp"
 #include "Boost.cpp"
-#include "pBoost.cpp"
+#include "PBoost.h"
 #include "SerialUnionFind.h"
 #include "OpenMPCC.cpp"
 #include "SpanningTreeCC.cpp"
 #include "RandomizedContract.cpp"
 #include "PRandomizedContract.cpp"
 #include "pBfsAtomic.cpp"
+#include "ObjConverter.cpp"
 
 #include <iostream>
 #include <fstream>
@@ -29,10 +30,15 @@
 #include <stdexcept>   // for exception, runtime_error, out_of_range
 #include <unordered_map>
 #include <omp.h>
+#include <mpi.h>
 
 #include <emmintrin.h>
 
+
 using namespace std;
+
+int mpiThreadCount;
+int mpiProcessRank;
 
 void generateAndSaveGraph(const string& fileName) {
 	ofstream myfile(fileName.c_str());
@@ -42,7 +48,7 @@ void generateAndSaveGraph(const string& fileName) {
 	int connectivity = 10;
 	vector<int> sizeOfEachComponent;
 	for (int i = 0; i < 10; ++i) {
-		sizeOfEachComponent.push_back(100000 * (i + 1));
+		sizeOfEachComponent.push_back(50000 * (i + 1));
 	}
 	RandomGraph r(sizeOfEachComponent, connectivity);
 
@@ -94,7 +100,7 @@ int readGraphFile(const string& fileName, vector<pair<int, int> > &outEdges) {
 		outEdges.push_back(pair<int, int>(firstInt, secondInt));
 	}
 	myfile.close();
-	cout << "Graph at: " << fileName << " was read.\n";
+	cout << "Graph at: " << fileName << " was read. Graph has "<< vectorCount << " vertices and " << outEdges.size() << " edges.\n";
 	return vectorCount;
 }
 
@@ -125,7 +131,7 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 	//----------------------------------------------
 	//---------------Implementation-----------------
 	//----------------------------------------------
-	cout << "Running ";
+	if (mpiProcessRank == 0) cout << "Running ";
 	if (alg == 0) {// bfs
 		cout << "bfs\n";
 		Bfs cc;
@@ -143,8 +149,8 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 		Boost cc;
 		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
 	} else if (alg == 4) {// pboost
-		cout << "pboost\n";
-		pBoost cc;
+		if (mpiProcessRank == 0) cout << "pboost\n";
+		PBoost cc;
 		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
 	} else if (alg == 5) {// pbfs
 		cout << "pbfs\n";
@@ -175,13 +181,15 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 	return nrComponents == solution;
 }
 
-int main(int argc, char* argv[]) {
+//int main(int argc, char* argv[]) {
+//	ObjConverter objToGraph;
+//	objToGraph.convert("graphs/space_station.obj", "graphs/space_station.txt");
+//	return 0;
+//}
 
-	#ifdef __linux__
-		cout << "Running on linux\n";
-	#elif _WIN32
-		cout << "Not running on linux\n";
-	#endif
+int main(int argc, char* argv[]) {
+	MPI_Init(0,0);
+
 	// Argument parsing
 	// ./a.exe bfs -g "graphs/g03.txt" -p 42
 	// all arguments are optional
@@ -273,26 +281,44 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	MPI_Comm_size(MPI_COMM_WORLD, &mpiThreadCount);
+	MPI_Comm_rank (MPI_COMM_WORLD, &mpiProcessRank);
+
+
+
 	vector<pair<int,int> > edges;
 	int vertexCount = 0;
-	int nrComponents = 0;
 
 	if (testG.size() == 0 && testP.size() == 0) { // single run!
-		cout << "Max number of openMP threads: " << omp_get_max_threads() << endl;
+		if (mpiProcessRank == 0) {
+			#ifdef __linux__
+				cout << "Running on linux\n";
+			#elif _WIN32
+				cout << "Not running on linux\n";
+			#endif
+
+			cout << "Max number of openMP threads: " << omp_get_max_threads() << endl;
+			cout << "Max number of MPI threads: " << mpiThreadCount << endl;
+			vertexCount = readGraphFile(fileName, edges);
+
+		}
+		if (mpiThreadCount > 1) {
+			// multiple processes. need to brodcast vertexCount
+			MPI_Bcast(&vertexCount, 1, MPI_INT, 0, MPI_COMM_WORLD);
+		}
 		double time = 0;
-		vertexCount = readGraphFile(fileName, edges);
 		std::vector<int> vertexToComponent(vertexCount, -1);
 
 		runAlgo(alg, vertexCount, edges, vertexToComponent, 0, &time);
 
-		std::vector<int> sizeOfComponent;
-		int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
-		for (int i = 0; i < componentCount; ++i) {
-			cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
+		if (mpiProcessRank == 0) {
+			std::vector<int> sizeOfComponent;
+			int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
+			for (int i = 0; i < componentCount; ++i) {
+				cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
+			}
+			cout << "Time elapsed: " << time << "s\n";
 		}
-
-
-		cout << "Time elapsed: " << time << "s\n";
 
 	} else if (testG.size() != 0) { // test with various sized graphs
 
@@ -300,60 +326,123 @@ int main(int argc, char* argv[]) {
 		vector<double> time(testG.size());
 		if (testFiles) {
 			pos = fileName.find("#");
-			if (pos == -1 || pos == fileName.length() - 1) {
+			if (pos == -1 || pos == ((int)fileName.length()) - 1) {
 				cout << "You have to specify a filename with a # in it. (-tf requires -g)" << endl;
 				return 0;
 			}
 		}
-		for (int i = 0; i < testG.size(); i++) {
-			if (!testFiles) // generate graph
-				edges = generateGraph(testG[i], &vertexCount, &sol);
-			else {// load graph from file
-				stringstream ss;
-				//ss << setw(2) << setfill('0') << testG[i];
-				if (testG[i] < 10)
-					ss << 0;
-				ss << testG[i];
-				string fname = fileName.substr(0, pos) + ss.str() + fileName.substr(pos + 1);
-				vertexCount = readGraphFile(fname, edges);
+		for (unsigned int i = 0; i < testG.size(); i++) {
+			if (mpiProcessRank == 0) {
+				if (!testFiles) // generate graph
+					edges = generateGraph(testG[i], &vertexCount, &sol);
+				else {// load graph from file
+					stringstream ss;
+					//ss << setw(2) << setfill('0') << testG[i];
+					if (testG[i] < 10)
+						ss << 0;
+					ss << testG[i];
+					string fname = fileName.substr(0, pos) + ss.str() + fileName.substr(pos + 1);
+					vertexCount = readGraphFile(fname, edges);
+				}
+			}
+			if (mpiThreadCount > 1) {
+				// multiple processes. need to brodcast vertexCount
+				MPI_Bcast(&vertexCount, 1, MPI_INT, 0, MPI_COMM_WORLD);
 			}
 
 			double t = 0;
 			for (int j = 0; j < repetitions; j++) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
-				bool result = runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
-				time[i] += t;
+				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
+				if (mpiProcessRank == 0) time[i] += t;
 			}
-			time[i] = time[i] / repetitions;
+			if (mpiProcessRank == 0) time[i] = time[i] / repetitions;
 		}
-		cout << "Timings:\n";
-		for (int i = 0; i < testG.size(); i++) {
-			cout << "\t" << time[i];
+		if (mpiProcessRank == 0)  {
+			cout << "Timings:\n";
+			for (unsigned int i = 0; i < testG.size(); i++) {
+				cout << "\t" << time[i];
+			}
+			cout << endl;
 		}
-		cout << endl;
 
 	} else { // testP nonempty, test with different amounts of threads
-
+		// this assumes non-mpi, no need to put mpi checks
 		int sol = 10;
 		vector<double> time(testP.size());
 		vertexCount = readGraphFile(fileName, edges);
-		for (int i = 0; i < testP.size(); i++) {
+		for (unsigned int i = 0; i < testP.size(); i++) {
 			omp_set_num_threads(testP[i]);
 			double t = 0;
 			for (int j = 0; j < repetitions; j++) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
-				bool result = runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
+				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
 				time[i] += t;
 				cout << "Run completed in time: " << t << "s" << endl;
 			}
 			time[i] = time[i] / repetitions;
 		}
 		cout << "Timings:\n";
-		for (int i = 0; i < testP.size(); i++) {
+		for (unsigned int i = 0; i < testP.size(); i++) {
 			cout << "\t" << time[i];
 		}
 		cout << endl;
 	}
+
+
+#ifdef __linux__
+	MPI_Barrier(MPI_COMM_WORLD);
+	// for memory measurements
+	ifstream statusFile("/proc/self/status");
+	if (!statusFile.is_open()) throw std::runtime_error ("Unable to open status file for memory measurments");
+
+	string line;
+	while (getline(statusFile, line)) {
+//		if (mpiProcessRank == 0) cout << line << endl;
+		if (strncmp(line.c_str(), "VmHWM:", 6) == 0) {
+			if (mpiProcessRank == 0)  {
+				cout << "Process " << mpiProcessRank << " peak mem usage: " << line.substr(6) << endl;
+
+				for (int i = 1; i < mpiThreadCount; ++i) {
+					MPI_Status status;
+					MPI_Probe(i, 0, MPI_COMM_WORLD, &status);
+					int l;
+					MPI_Get_count(&status, MPI_CHAR, &l);
+					char *buf = new char[l];
+					MPI_Recv(buf, l, MPI_CHAR, i, 0, MPI_COMM_WORLD, &status);
+					cout << "Process " << i << " peak mem usage: " << buf << endl;
+					delete [] buf;
+				}
+			} else {
+				string msg = line.substr(6);
+				MPI_Send((void*)msg.c_str(), msg.size(), MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+			}
+//			break;
+		}
+		if (strncmp(line.c_str(), "VmSwap:", 7) == 0) {
+			if (mpiProcessRank == 0)  {
+				cout << "Process " << mpiProcessRank << " swap mem usage: " << line.substr(7) << endl;
+
+				for (int i = 1; i < mpiThreadCount; ++i) {
+					MPI_Status status;
+					MPI_Probe(i, 1, MPI_COMM_WORLD, &status);
+					int l;
+					MPI_Get_count(&status, MPI_CHAR, &l);
+					char *buf = new char[l];
+					MPI_Recv(buf, l, MPI_CHAR, i, 1, MPI_COMM_WORLD, &status);
+					cout << "Process " << i << " swap mem usage: " << buf << endl;
+					delete [] buf;
+				}
+			} else {
+				string msg = line.substr(7);
+				MPI_Send((void*)msg.c_str(), msg.size(), MPI_CHAR, 0, 1, MPI_COMM_WORLD);
+			}
+//			break;
+		}
+	}
+	statusFile.close();
+#endif
+	MPI_Finalize();
 
 	return 0;
 }

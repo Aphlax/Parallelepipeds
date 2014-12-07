@@ -50,9 +50,9 @@ class PBfsAtomic {
 			nt = omp_get_num_threads();
 			std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
 			mergeMapArray[tn] = mergeMap;
-			queue<int> q;
+			std::queue<int> q;
 			#pragma omp for
-			for (int i = 0; i < graph.size(); ++i) {
+			for (unsigned int i = 0; i < graph.size(); ++i) {
 				if (vertexToComponentAtomic[i].load() >= 0) continue;
 				q.push(i);
 				int compMark = i;
@@ -85,7 +85,7 @@ class PBfsAtomic {
 		//merge the mergeMaps
 		for(int i=0;i<nt;i++)
 		{
-			for(int j=0;j<graph.size();j++)
+			for(unsigned int j=0;j<graph.size();j++)
 			{
 				mergeMap[j].insert(mergeMapArray[i][j].begin(), mergeMapArray[i][j].end());
 			}
@@ -100,7 +100,7 @@ class PBfsAtomic {
 				set<int> mergeSet;
 				for(set<int>::iterator it = mergeMap[i].begin(); it!=mergeMap[i].end() ;it++)
 				{
-					if(not mergeMap[*it].empty() && *it != i)
+					if(not mergeMap[*it].empty() && *it != (int)i)
 					{
 						mergeSet.insert(mergeMap[*it].begin(),mergeMap[*it].end());
 						mergeMap[*it].clear();

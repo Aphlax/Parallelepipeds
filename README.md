@@ -24,3 +24,20 @@ Week 6
 ======
 
 - Reach ballmer's peak
+
+Week t-2
+========
+
+- pboost implementation
+- pbfs check why it's slow
+- get xeon phi working
+- generate test suite - different sized graphs with different amounts of edges (sparse/non-sparse)
+- generate graph files for real world graphs
+
+
+
+
+
+
+
+

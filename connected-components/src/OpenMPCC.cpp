@@ -40,7 +40,7 @@ class OpenMPCC {
 			std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
 			std::vector<int> beginningNode;
 			mergeMapArray[tn] = mergeMap;
-			queue<int> q;
+			std::queue<int> q;
 			//#pragma omp for
 			for (int i = tn*workLoad; i < (tn+1)*workLoad; ++i) {
 				if (outVertexToComponent[i] >= 0) continue;
@@ -76,7 +76,7 @@ class OpenMPCC {
 		//merge the mergeMaps
 		for(int i=0;i<nt;i++)
 		{
-			for(int j=0;j<graph.size();j++)
+			for(unsigned int j=0;j<graph.size();j++)
 			{
 				mergeMap[j].insert(mergeMapArray[i][j].begin(), mergeMapArray[i][j].end());
 			}
@@ -92,7 +92,7 @@ class OpenMPCC {
 				//#pragma omp parallel for
 				for(set<int>::iterator it = mergeMap[i].begin(); it!=mergeMap[i].end() ;it++)
 				{
-					if(not mergeMap[*it].empty() && *it != i)
+					if(not mergeMap[*it].empty() && *it != (int)i)
 					{
 						mergeSet.insert(mergeMap[*it].begin(),mergeMap[*it].end());
 						mergeMap[*it].clear();
