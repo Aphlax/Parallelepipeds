@@ -38,6 +38,10 @@ class StopWatch {
 			mergingTime = time;
 		return time;
 	}
+	public: double algoTime()
+	{
+		return mainSectionTime + mergingTime;
+	}
 };
 
 

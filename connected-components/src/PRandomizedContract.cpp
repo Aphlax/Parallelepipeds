@@ -13,8 +13,7 @@ using namespace std;
 
 class PRandomizedContract {
 
-public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &L) {
-	StopWatch stopWatch;
+public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &L, StopWatch &stopWatch) {
 	stopWatch.start(stopWatch.inputProcessing);
 	const int HEAD = 0;
 	const int TAIL = 1;
@@ -39,7 +38,7 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 	vector<vector<int> > contractedEdgesInIteration = vector<vector<int> >(omp_get_max_threads(), vector<int>(0));
 	for (int i = 0; i < omp_get_max_threads(); ++i) seeds[i] = i;
 
-	cout << "Checkpoint 1: " << stopWatch.stop(stopWatch.inputProcessing) << "s\n";
+	stopWatch.stop(stopWatch.inputProcessing);
 	stopWatch.start(stopWatch.mainSection);
 
 	for (int iteration = 0; edgesLeft > 0; ++iteration) {
@@ -59,7 +58,7 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 					headOrTail[v] = rand_r(&seeds[omp_get_thread_num()])%2;
 					headOrTailIteration[v] = iteration;
 				}
-			#elif _WIN32
+			#else
 				if (headOrTailIteration[u] != iteration) {
 					headOrTail[u] = rand()%2;
 					headOrTailIteration[u] = iteration;
@@ -213,7 +212,7 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 //		L[e.second] = L[e.first];
 //	}
 
-	cout << "Last checkpoint: " << stopWatch.stop(stopWatch.mainSection) << "s\n";
+	stopWatch.stop(stopWatch.mainSection);
 
 
 	return 0;

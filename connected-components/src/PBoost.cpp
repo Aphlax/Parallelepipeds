@@ -67,14 +67,12 @@ typedef property<component_t, double> VertexComponent;
 using namespace std;
 
 
-int PBoost::run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
+int PBoost::run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent, StopWatch &stopWatch) {
 
 	boost::mpi::environment env();
 
 
-	std::chrono::time_point<std::chrono::system_clock> start, end;
-	std::chrono::duration<double> elapsed_seconds;
-	start = std::chrono::system_clock::now();
+	stopWatch.start(stopWatch.inputProcessing);
 
 	Graph g(numberOfVertices);
 	if (process_id(g.process_group()) == 0) {
@@ -89,18 +87,16 @@ int PBoost::run(const int numberOfVertices, const std::vector<std::pair<int,int>
 	synchronize(g.process_group());
 	if (process_id(g.process_group()) == 0) {
 		cout << "Graph created\n";
-		elapsed_seconds = std::chrono::system_clock::now()-start;
-		cout << "Checkpoint 1: " << elapsed_seconds.count() << "s\n";
-		start = std::chrono::system_clock::now();
+		stopWatch.stop(stopWatch.inputProcessing);
+		stopWatch.start(stopWatch.mainSection);
 	}
 	property_map<Graph, component_t>::type component_map = get(component_t(), g);
 
 	connected_components(g, component_map);
 
 	if (process_id(g.process_group()) == 0) {
-		elapsed_seconds = std::chrono::system_clock::now()-start;
-		cout << "Checkpoint 2: " << elapsed_seconds.count() << "s\n";
-		start = std::chrono::system_clock::now();
+		stopWatch.stop(stopWatch.mainSection);
+		stopWatch.start(stopWatch.merging);
 
 		cout << "Reading result\n";
 		for (int i = 0; i < numberOfVertices; ++i) {
@@ -110,15 +106,13 @@ int PBoost::run(const int numberOfVertices, const std::vector<std::pair<int,int>
 	synchronize(g.process_group());
 
 	if (process_id(g.process_group()) == 0) {
-		elapsed_seconds = std::chrono::system_clock::now()-start;
-		cout << "Checkpoint 3: " << elapsed_seconds.count() << "s\n";
-		start = std::chrono::system_clock::now();
+		stopWatch.stop(stopWatch.merging);
 	}
 	return 0;
 
 }
 #else
-int PBoost::run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
+int PBoost::run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent, StopWatch &stopWatch) {
 	return 0;
 }
 #endif

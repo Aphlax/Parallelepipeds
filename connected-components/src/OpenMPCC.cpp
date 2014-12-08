@@ -17,8 +17,6 @@ using namespace boost;
 class OpenMPCC {
 	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent, StopWatch &stopWatch) {
 		stopWatch.start(stopWatch.inputProcessing);
-
-		cout << "openMPCC started." << endl;
 		std::vector<std::vector<int> > graph(numberOfVertices, std::vector<int>());
 		int nt;
 

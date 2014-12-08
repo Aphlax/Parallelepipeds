@@ -15,8 +15,7 @@ typedef graph_traits<GraphS>::vertex_descriptor VertexS;
 
 class Boost {
 
-public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
-		StopWatch stopWatch;
+public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent, StopWatch &stopWatch) {
 		stopWatch.start(stopWatch.inputProcessing);
 
 		GraphS g(numberOfVertices);
@@ -24,11 +23,11 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 			add_edge(edges[i].first, edges[i].second,g);
 		}
 
-		cout << "Checkpoint 1: " << stopWatch.stop(stopWatch.inputProcessing) << "s\n";
+		stopWatch.stop(stopWatch.inputProcessing);
 		stopWatch.start(stopWatch.mainSection);
 		int componentCount = connected_components(g, &outVertexToComponent[0]);
 
-		cout << "Checkpoint 2: " << stopWatch.stop(stopWatch.mainSection)<< "s\n";
+		stopWatch.stop(stopWatch.mainSection);
 		return componentCount;
 	}
 };

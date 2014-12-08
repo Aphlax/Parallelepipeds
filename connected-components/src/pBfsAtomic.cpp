@@ -19,12 +19,8 @@ using namespace std;
 using namespace boost;
 
 class PBfsAtomic {
-	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
-
-		cout << "pBfsAtomic started." << endl;
-
+	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent, StopWatch &stopWatch) {
 		//initializing the atomic array
-		StopWatch stopWatch;
 		stopWatch.start(stopWatch.inputProcessing);
 		vector< std::atomic<int> > vertexToComponentAtomic(numberOfVertices);
 		for(int i=0;i<numberOfVertices;i++)
@@ -39,7 +35,7 @@ class PBfsAtomic {
 			graph[edges[i].first].push_back(edges[i].second);
 			graph[edges[i].second].push_back(edges[i].first);
 		}
-		cout << "graph generating time: " << stopWatch.stop(stopWatch.inputProcessing) << endl;
+		stopWatch.stop(stopWatch.inputProcessing);
 		stopWatch.start(stopWatch.mainSection);
 		//connected component alogrithm
 		std::vector<set<int> > mergeMapArray[10];
@@ -78,7 +74,7 @@ class PBfsAtomic {
 				}
 			}
 		}
-		cout << "Main time: " << stopWatch.stop(stopWatch.mainSection) << endl;
+		stopWatch.stop(stopWatch.mainSection);
 		stopWatch.start(stopWatch.merging);
 
 		std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
@@ -136,7 +132,7 @@ class PBfsAtomic {
 		{
 			outVertexToComponent[i]  = finalCompNr[vertexToComponentAtomic[i]];
 		}
-		cout << "merge time: " << stopWatch.stop(stopWatch.merging) << "s\n";
+		stopWatch.stop(stopWatch.merging);
 		return componentCount;
 	}
 };

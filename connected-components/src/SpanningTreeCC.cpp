@@ -36,13 +36,12 @@ class SpanningTreeCC {
 	 * It expects that outVertexToComponent is a vector of size numberOfVertices, filled with -1
 	 */
 public:
-	int run(const int n, const vector<pair<int,int> > &e, vector<int> &outVertexToComponent) {
+	int run(const int n, const vector<pair<int,int> > &e, vector<int> &outVertexToComponent, StopWatch &stopWatch) {
 		const int m = e.size();
 		vector<vector<pair<int, int> >* > strees;
 		vector<int> streeSize;
 		vector<int> resultComp;
 		int resultSize;
-		StopWatch stopWatch;
 		stopWatch.start(stopWatch.mainSection);
 		#pragma omp parallel shared(strees, streeSize, resultComp, resultSize)
 		{

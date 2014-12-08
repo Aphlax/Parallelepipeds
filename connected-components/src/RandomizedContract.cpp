@@ -12,8 +12,7 @@ using namespace std;
 
 class RandomizedContract {
 
-	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &L) {
-		StopWatch stopWatch;
+	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &L, StopWatch &stopWatch) {
 		stopWatch.start(stopWatch.inputProcessing);
 		const int HEAD = 0;
 		const int TAIL = 1;
@@ -27,7 +26,7 @@ class RandomizedContract {
 		#ifdef __linux__
 			unsigned int seed = 0;
 		#endif
-		cout << "Checkpoint 1: " << stopWatch.stop(stopWatch.inputProcessing) << "s\n";
+		stopWatch.stop(stopWatch.inputProcessing);
 		stopWatch.start(stopWatch.mainSection);
 
 		stack<pair<int,int> > s;
@@ -45,7 +44,7 @@ class RandomizedContract {
 						headOrTail[v] = rand_r(&seed)%2;
 						headOrTailIteration[v] = iteration;
 					}
-				#elif _WIN32
+				#else
 					if (headOrTailIteration[u] != iteration) {
 						headOrTail[u] = rand()%2;
 						headOrTailIteration[u] = iteration;
@@ -93,7 +92,7 @@ class RandomizedContract {
 //			for (int i = 0; i < numberOfVertices; ++i) cout << i << ":" << L[i] << ", ";
 //			cout << endl << "iterate " << endl;
 		}
-		cout << "Checkpoin 2: " << stopWatch.stop(stopWatch.mainSection) << "s\n";
+		stopWatch.stop(stopWatch.mainSection);
 		stopWatch.start(stopWatch.merging);
 		while (!s.empty()) {
 			pair<int,int> e = s.top();
@@ -101,7 +100,7 @@ class RandomizedContract {
 			L[e.second] = L[e.first];
 		}
 
-		cout << "Last checkpoint: " << stopWatch.stop(stopWatch.merging) << "s\n";
+		stopWatch.stop(stopWatch.merging);
 
 		return 0;
 	}
