@@ -1,6 +1,6 @@
 #include "PBoost.h"
 
-
+#ifdef __linux__
 // Copyright (C) 2004-2008 The Trustees of Indiana University.
 
 // Use, modification and distribution is subject to the Boost Software
@@ -18,17 +18,20 @@
 // Communicate via MPI
 #include <boost/graph/distributed/mpi_process_group.hpp>
 
+#ifdef __linux__
 // Breadth-first search algorithm
 #include <boost/graph/breadth_first_search.hpp>
 
 // Distributed adjacency list
 #include <boost/graph/distributed/adjacency_list.hpp>
+//#include <boost/graph/adjacency_list.hpp>
+#endif
 
 // METIS Input
 #include <boost/graph/metis.hpp>
 
 // Graphviz Output
-#include <boost/graph/distributed/graphviz.hpp>
+//#include <boost/graph/distributed/graphviz.hpp>
 
 // For choose_min_reducer
 #include <boost/graph/distributed/distributed_graph_utility.hpp>
@@ -60,10 +63,9 @@ struct component_t {
         typedef vertex_property_tag kind;
 };
 typedef property<component_t, double> VertexComponent;
-typedef adjacency_list<vecS, distributedS<mpi_process_group, vecS>, undirectedS, VertexComponent>
-  Graph;
+//typedef adjacency_list<vecS, distributedS<mpi_process_group, vecS>, undirectedS, VertexComponent> Graph;
 
-typedef graph_traits<Graph>::vertex_descriptor Vertex;
+//typedef graph_traits<Graph>::vertex_descriptor Vertex;
 
 using namespace std;
 
@@ -115,7 +117,11 @@ int PBoost::run(const int numberOfVertices, const std::vector<std::pair<int,int>
 		cout << "Checkpoint 3: " << elapsed_seconds.count() << "s\n";
 		start = std::chrono::system_clock::now();
 	}
+	return 0;
 
+}
+#else
+int PBoost::run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
 	return 0;
 }
-
+#endif
