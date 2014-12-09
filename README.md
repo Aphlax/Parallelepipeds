@@ -28,11 +28,38 @@ Week 6
 Week t-2
 ========
 
-- pboost implementation
-- pbfs check why it's slow
-- get xeon phi working
+- pboost implementation -done
+- pbfs check why it's slow -done
+- get xeon phi working -almost done (need argument supply method)
 - generate test suite - different sized graphs with different amounts of edges (sparse/non-sparse)
 - generate graph files for real world graphs
+
+Week t-1
+========
+
+- get xeon phi working with arguments
+- generate test suite - different sized graphs with different amounts of edges (sparse/non-sparse)
+- generate graph files for real world graphs
+- presentation:
+
+	graph: comparison parallel algorithms (RT / Graph size (1: same # components, increasing # v+e) (2: same # v, increasing # components) )
+	discuss algos:
+		pbfs
+			explain serial + parallel
+			differences to atomics
+			main/merge timings
+			graph: ideal number of cores (RT / # threads)
+		pstree
+			explain serial + parallel
+			graph: ideal number of cores (RT / # threads)
+		random contract
+			explain serial + parallel
+			graph: ideal number of cores (RT / # threads)
+	real world examples with different algorithms: graphs (RT / Graph)
+	
+
+
+
 
 
 

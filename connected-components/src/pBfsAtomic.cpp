@@ -12,45 +12,37 @@
 #include <ctime>
 #include <chrono>
 #include <atomic>
+#include "StopWatch.cpp"
 
 
 using namespace std;
 using namespace boost;
 
 class PBfsAtomic {
-	std::chrono::time_point<std::chrono::system_clock> start, end;
-	std::chrono::duration<double> elapsed_seconds;
-
 	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
 
 		cout << "pBfsAtomic started." << endl;
 
 		//initializing the atomic array
-		start = std::chrono::system_clock::now();
+		StopWatch stopWatch;
+		stopWatch.start(stopWatch.inputProcessing);
 		vector< std::atomic<int> > vertexToComponentAtomic(numberOfVertices);
 		for(int i=0;i<numberOfVertices;i++)
 		{
 			vertexToComponentAtomic[i].store(-1);
 		}
-		end = std::chrono::system_clock::now();
-		elapsed_seconds = end-start;
-		cout << "initializing atomic array time: " << elapsed_seconds.count() << endl;
 
 		//creating the graph
-		start = std::chrono::system_clock::now();
 		std::vector<std::vector<int> > graph(numberOfVertices, std::vector<int>());
 		int nt;
 		for (unsigned int i = 0; i < edges.size(); ++i) {
 			graph[edges[i].first].push_back(edges[i].second);
 			graph[edges[i].second].push_back(edges[i].first);
 		}
-		end = std::chrono::system_clock::now();
-		elapsed_seconds = end-start;
-		cout << "graph generating time: " << elapsed_seconds.count() << endl;
-
+		cout << "graph generating time: " << stopWatch.stop(stopWatch.inputProcessing) << endl;
+		stopWatch.start(stopWatch.mainSection);
 		//connected component alogrithm
-		start = std::chrono::system_clock::now();
-		std::vector<set<int> > mergeMapArray[10] ;
+		std::vector<set<int> > mergeMapArray[10];
 
 		#pragma omp parallel //shared(outVertexToComponent)
 		{
@@ -86,12 +78,8 @@ class PBfsAtomic {
 				}
 			}
 		}
-		end = std::chrono::system_clock::now();
-		elapsed_seconds = end-start;
-		cout << "Main time: " << elapsed_seconds.count() << endl;
-
-
-		start = std::chrono::system_clock::now();
+		cout << "Main time: " << stopWatch.stop(stopWatch.mainSection) << endl;
+		stopWatch.start(stopWatch.merging);
 
 		std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
 		//merge the mergeMaps
@@ -148,10 +136,7 @@ class PBfsAtomic {
 		{
 			outVertexToComponent[i]  = finalCompNr[vertexToComponentAtomic[i]];
 		}
-
-		end = std::chrono::system_clock::now();
-		elapsed_seconds = end-start;
-		cout << "merge time: " << elapsed_seconds.count() << "s\n";
+		cout << "merge time: " << stopWatch.stop(stopWatch.merging) << "s\n";
 		return componentCount;
 	}
 };

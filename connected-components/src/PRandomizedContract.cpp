@@ -6,8 +6,7 @@
 #include <iostream>
 #include <queue>
 #include <algorithm>
-#include <ctime>
-#include <chrono>
+#include "StopWatch.cpp"
 #include <atomic>
 
 using namespace std;
@@ -15,9 +14,8 @@ using namespace std;
 class PRandomizedContract {
 
 public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &L) {
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    std::chrono::duration<double> elapsed_seconds;
-    start = std::chrono::system_clock::now();
+	StopWatch stopWatch;
+	stopWatch.start(stopWatch.inputProcessing);
 	const int HEAD = 0;
 	const int TAIL = 1;
 
@@ -41,9 +39,8 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 	vector<vector<int> > contractedEdgesInIteration = vector<vector<int> >(omp_get_max_threads(), vector<int>(0));
 	for (int i = 0; i < omp_get_max_threads(); ++i) seeds[i] = i;
 
-	elapsed_seconds = std::chrono::system_clock::now()-start;
-	cout << "Checkpoint 1: " << elapsed_seconds.count() << "s\n";
-	start = std::chrono::system_clock::now();
+	cout << "Checkpoint 1: " << stopWatch.stop(stopWatch.inputProcessing) << "s\n";
+	stopWatch.start(stopWatch.mainSection);
 
 	for (int iteration = 0; edgesLeft > 0; ++iteration) {
 
@@ -199,13 +196,10 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 //			cout << endl << "iterate " << endl;
 
 	}
-	elapsed_seconds = std::chrono::system_clock::now()-start;
-	cout << "Checkpoin 2: " << elapsed_seconds.count() << "s\n";
-	start = std::chrono::system_clock::now();
-//	vector<int> contractedEdgeCounter = vector<int>(omp_get_max_threads(), 0);
-//	for (int i = contractedEdgesInIteration.size() - 1; i >= 0; --i) {
-//
-//	}
+
+	//vector<int> contractedEdgeCounter = vector<int>(omp_get_max_threads(), 0);
+	//for (int i = contractedEdgesInIteration.size() - 1; i >= 0; --i) {
+
 
 	while (!s.empty()) {
 		pair<int,int> e = s.top();
@@ -213,9 +207,14 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 		L[e.second] = L[e.first];
 	}
 
-	elapsed_seconds = std::chrono::system_clock::now()-start;
-	cout << "Last checkpoint: " << elapsed_seconds.count() << "s\n";
-	start = std::chrono::system_clock::now();
+//	while (!s.empty()) {
+//		pair<int,int> e = s.top();
+//		s.pop();
+//		L[e.second] = L[e.first];
+//	}
+
+	cout << "Last checkpoint: " << stopWatch.stop(stopWatch.mainSection) << "s\n";
+
 
 	return 0;
 }

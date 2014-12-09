@@ -17,6 +17,7 @@
 #include "PRandomizedContract.cpp"
 #include "pBfsAtomic.cpp"
 #include "ObjConverter.cpp"
+#include "StopWatch.cpp"
 
 #include <iostream>
 #include <fstream>
@@ -123,7 +124,7 @@ int findSizeOfComponent(const int vertexCount, const std::vector<int>& vertexToC
 	return outSizeOfComponent.size();
 }
 
-bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<int> &vertexToComponent, int solution, double *time) {
+bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<int> &vertexToComponent, int solution, double *time, StopWatch &stopWatch) {
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 	start = std::chrono::system_clock::now();
 	int nrComponents = 0;
@@ -155,7 +156,7 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 	} else if (alg == 5) {// pbfs
 		cout << "pbfs\n";
 		OpenMPCC cc;
-		nrComponents = cc.run(vertexCount, edges, vertexToComponent);
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent, stopWatch);
 	} else if (alg == 6) {// pstree
 		cout << "pstree\n";
 		SpanningTreeCC cc;
@@ -283,7 +284,7 @@ int main(int argc, char* argv[]) {
 
 	MPI_Comm_size(MPI_COMM_WORLD, &mpiThreadCount);
 	MPI_Comm_rank (MPI_COMM_WORLD, &mpiProcessRank);
-
+	StopWatch stopWatch;
 
 
 	vector<pair<int,int> > edges;
@@ -309,7 +310,8 @@ int main(int argc, char* argv[]) {
 		double time = 0;
 		std::vector<int> vertexToComponent(vertexCount, -1);
 
-		runAlgo(alg, vertexCount, edges, vertexToComponent, 0, &time);
+		runAlgo(alg, vertexCount, edges, vertexToComponent, 0, &time, stopWatch);
+
 		if (mpiProcessRank == 0) {
 			std::vector<int> sizeOfComponent;
 			int componentCount = findSizeOfComponent(vertexCount, vertexToComponent, sizeOfComponent);
@@ -317,6 +319,9 @@ int main(int argc, char* argv[]) {
 				cout << "Component " << i << ": " << sizeOfComponent[i] << " vertices\n";
 			}
 			cout << "Time elapsed: " << time << "s\n";
+			cout << "Input processing: " << stopWatch.inputProcessingTime << endl;
+			cout << "Main section: " << stopWatch.mainSectionTime << endl;
+			cout << "merging: " << stopWatch.mergingTime << endl;
 		}
 
 	} else if (testG.size() != 0) { // test with various sized graphs
@@ -352,8 +357,14 @@ int main(int argc, char* argv[]) {
 			double t = 0;
 			for (int j = 0; j < repetitions; j++) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
-				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
-				if (mpiProcessRank == 0) time[i] += t;
+				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t, stopWatch);
+				if (mpiProcessRank == 0)
+				{
+					time[i] += t;
+					cout << "Input processing: " << stopWatch.inputProcessingTime << endl;
+					cout << "Main section: " << stopWatch.mainSectionTime << endl;
+					cout << "merging: " << stopWatch.mergingTime << endl;
+				}
 			}
 			if (mpiProcessRank == 0) time[i] = time[i] / repetitions;
 		}
@@ -375,9 +386,12 @@ int main(int argc, char* argv[]) {
 			double t = 0;
 			for (int j = 0; j < repetitions; j++) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
-				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t);
+				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, &t, stopWatch);
 				time[i] += t;
 				cout << "Run completed in time: " << t << "s" << endl;
+				cout << "Input processing: " << stopWatch.inputProcessingTime << endl;
+				cout << "Main section: " << stopWatch.mainSectionTime << endl;
+				cout << "merging: " << stopWatch.mergingTime << endl;
 			}
 			time[i] = time[i] / repetitions;
 		}
@@ -386,6 +400,7 @@ int main(int argc, char* argv[]) {
 			cout << "\t" << time[i];
 		}
 		cout << endl;
+
 	}
 
 

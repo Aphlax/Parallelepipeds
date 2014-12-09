@@ -9,38 +9,25 @@
 #include <set>
 #include <boost/lockfree/queue.hpp>
 #include <tuple>
-#include <ctime>
-#include <chrono>
 #include "StopWatch.cpp"
 
 using namespace std;
 using namespace boost;
 
 class OpenMPCC {
-	std::chrono::time_point<std::chrono::system_clock> start, end;
-	std::chrono::duration<double> elapsed_seconds;
-
-	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent) {
-
-		StopWatch stopWatch;
-		stopWatch.start();
+	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent, StopWatch &stopWatch) {
+		stopWatch.start(stopWatch.inputProcessing);
 
 		cout << "openMPCC started." << endl;
 		std::vector<std::vector<int> > graph(numberOfVertices, std::vector<int>());
 		int nt;
-		//#pragma omp parallel
-		{
-			//int tn = omp_get_thread_num();
-			//nt = omp_get_num_threads();
-			int size = edges.size();
-			for (int i = 0; i < size; ++i) {
-				graph[edges[i].first].push_back(edges[i].second);
-				graph[edges[i].second].push_back(edges[i].first);
-			}
+
+		for (unsigned int i = 0; i < edges.size(); ++i) {
+			graph[edges[i].first].push_back(edges[i].second);
+			graph[edges[i].second].push_back(edges[i].first);
 		}
-
-		cout << "graph generating time: " << stopWatch.checkPoint() << "s\n";
-
+		stopWatch.stop(stopWatch.inputProcessing);
+		stopWatch.start(stopWatch.mainSection);
 		std::vector<set<int> > mergeMapArray[10] ;
 
 		int size = graph.size();
@@ -82,8 +69,8 @@ class OpenMPCC {
 				}
 			}
 		}
-		cout << "Main time: " << stopWatch.checkPoint() << "s\n";
-
+		stopWatch.stop(stopWatch.mainSection);
+		stopWatch.start(stopWatch.merging);
 		std::vector<set<int> > mergeMap(numberOfVertices, set<int>());
 		//merge the mergeMaps
 		for(int i=0;i<nt;i++)
@@ -101,6 +88,7 @@ class OpenMPCC {
 			{
 				newAdded=false;
 				set<int> mergeSet;
+				//#pragma omp parallel for
 				for(set<int>::iterator it = mergeMap[i].begin(); it!=mergeMap[i].end() ;it++)
 				{
 					if(not mergeMap[*it].empty() && *it != (int)i)
@@ -139,7 +127,7 @@ class OpenMPCC {
 		{
 			outVertexToComponent[i]  = finalCompNr[outVertexToComponent[i]];
 		}
-		cout << "merge time: " << stopWatch.checkPoint() << "s\n";
+		stopWatch.stop(stopWatch.merging);
 		return componentCount;
 	}
 };
