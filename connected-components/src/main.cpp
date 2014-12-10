@@ -105,6 +105,29 @@ int readGraphFile(const string& fileName, vector<pair<int, int> > &outEdges) {
 	return vectorCount;
 }
 
+/**
+ * Returns the arguments found in input.txt.
+ */
+void readArguments(int* argc, vector<string> &args) {
+	cout << "reading arguments from input.txt" << endl;
+	ifstream myfile("input.txt");
+	if (!myfile.is_open()) return;
+
+	int i = 0;
+	string line, sub;
+	if (getline(myfile, line)) {
+		std::istringstream iss(line);
+		do
+		{
+			iss >> sub;
+			args[i++] = sub;
+		} while (iss);
+	}
+	myfile.close();
+	*argc = i - 1;
+	return;
+}
+
 
 int findSizeOfComponent(const int vertexCount, const std::vector<int>& vertexToComponent, std::vector<int>& outSizeOfComponent) {
 	std::unordered_map<int, int> m;
@@ -188,8 +211,17 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 //	return 0;
 //}
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* arg[]) {
 	MPI_Init(0,0);
+
+	vector<string> argv(100);
+	if (argc <= 1) {
+		readArguments(&argc, argv);
+	} else {
+		for (int i = 1; i < argc; i++)// ignoring first argument: execution path
+			argv[i - 1] = string(arg[i]);
+		argc--;
+	}
 
 	// Argument parsing
 	// ./a.exe bfs -g "graphs/g03.txt" -p 42
@@ -200,30 +232,30 @@ int main(int argc, char* argv[]) {
 	vector<int> testG(0);
 	vector<int> testP(0);
 	int repetitions = 1;
-	for (int i = 1; i < argc; i++) {
-		if (!strcmp(argv[i], "bfs"))
+	for (int i = 0; i < argc; i++) {
+		if (!argv[i].compare("bfs"))
 			alg = 0;
-		else if (!strcmp(argv[i], "ufind"))
+		else if (!argv[i].compare("ufind"))
 			alg = 1;
-		else if (!strcmp(argv[i], "randcontract"))
+		else if (!argv[i].compare("randcontract"))
 			alg = 2;
-		else if (!strcmp(argv[i], "boost"))
+		else if (!argv[i].compare("boost"))
 			alg = 3;
-		else if (!strcmp(argv[i], "pboost"))
+		else if (!argv[i].compare("pboost"))
 			alg = 4;
-		else if (!strcmp(argv[i], "pbfs"))
+		else if (!argv[i].compare("pbfs"))
 			alg = 5;
-		else if (!strcmp(argv[i], "pstree"))
+		else if (!argv[i].compare("pstree"))
 			alg = 6;
-		else if (!strcmp(argv[i], "prandcontract"))
+		else if (!argv[i].compare("prandcontract"))
 			alg = 7;
-		else if (!strcmp(argv[i], "pbfsatomic"))
+		else if (!argv[i].compare("pbfsatomic"))
 			alg = 8;
-		else if (!strcmp(argv[i], "-g")) {// graph selection
+		else if (!argv[i].compare("-g")) {// graph selection
 			if (++i < argc)
 				fileName = argv[i];
 		}
-		else if (!strcmp(argv[i], "-p")) {// # threads selection
+		else if (!argv[i].compare("-p")) {// # threads selection
 			if (++i < argc) {
 				std::istringstream iss(argv[i]);
 				int p;
@@ -234,13 +266,13 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
-		else if (!strcmp(argv[i], "-h")) {
+		else if (!argv[i].compare("-h")) {
 			cout << "Options:\n\t[String]\tAlgorithm selection\n\t-g [String]\tPath to graph file\n\t-p [Int]\tNumber of threads hint\n\t-h\t\tThis Message\n\t-tg [Int]*\tTest performance with graphs of given sizes (*1000)\n\t-tf [Int]*\tTest performance with multiple graph files. Requires -g option to be set and the name\n\t\t\tmust contain the character # (which is then replaced with the given integers as two digits)\n\t-tp [Int]*\tTest performance with given number of threads\n\t-r [Int]\tRepetitions for tests\n";
 			cout << "Algorithms: bfs, ufind, randcontract, boost\nParallel Algorithms: pboost, pbfs, pbfsatomic, pstree, prandcontract" << endl;
 			return 0;
 		}
-		else if (!strcmp(argv[i], "-tg") || !strcmp(argv[i], "-tf")) {// testing graphs w/wo files
-			testFiles = !strcmp(argv[i], "-tf");
+		else if (!argv[i].compare("-tg") || !argv[i].compare("-tf")) {// testing graphs w/wo files
+			testFiles = !argv[i].compare("-tf");
 			while (++i < argc)
 			{
 				std::istringstream iss(argv[i]);
@@ -253,7 +285,7 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
-		else if (!strcmp(argv[i], "-tp")) {// testing threads
+		else if (!argv[i].compare("-tp")) {// testing threads
 			while (++i < argc)
 			{
 				std::istringstream iss(argv[i]);
@@ -266,7 +298,7 @@ int main(int argc, char* argv[]) {
 				}
 			}
 		}
-		else if (!strcmp(argv[i], "-r")) {// repetitions for tests
+		else if (!argv[i].compare("-r")) {// repetitions for tests
 			if (++i < argc) {
 				std::istringstream iss(argv[i]);
 				int r;

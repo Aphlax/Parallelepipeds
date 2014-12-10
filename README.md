@@ -42,20 +42,20 @@ Week t-1
 - generate graph files for real world graphs
 - presentation:
 
-	graph: comparison parallel algorithms (RT / Graph size (1: same # components, increasing # v+e) (2: same # v, increasing # components) )
-	discuss algos:
-		pbfs
-			explain serial + parallel
-			differences to atomics
-			main/merge timings
-			graph: ideal number of cores (RT / # threads)
-		pstree
-			explain serial + parallel
-			graph: ideal number of cores (RT / # threads)
-		random contract
-			explain serial + parallel
-			graph: ideal number of cores (RT / # threads)
-	real world examples with different algorithms: graphs (RT / Graph)
+	- graph: comparison parallel algorithms (RT / Graph size (1: same # components, increasing # v+e) (2: same # v, increasing # components) )
+	- discuss algos:
+		- pbfs
+			- explain serial + parallel
+			- differences to atomics
+			- main/merge timings
+			- graph: ideal number of cores (RT / # threads)
+		- pstree
+			- explain serial + parallel
+			- graph: ideal number of cores (RT / # threads)
+		- random contract
+			- explain serial + parallel
+			- graph: ideal number of cores (RT / # threads)
+	- real world examples with different algorithms: graphs (RT / Graph)
 	
 
 
