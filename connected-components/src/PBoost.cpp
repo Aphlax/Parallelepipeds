@@ -60,9 +60,9 @@ struct component_t {
         typedef vertex_property_tag kind;
 };
 typedef property<component_t, double> VertexComponent;
-//typedef adjacency_list<vecS, distributedS<mpi_process_group, vecS>, undirectedS, VertexComponent> Graph;
+typedef adjacency_list<vecS, distributedS<mpi_process_group, vecS>, undirectedS, VertexComponent> Graph;
 
-//typedef graph_traits<Graph>::vertex_descriptor Vertex;
+typedef graph_traits<Graph>::vertex_descriptor Vertex;
 
 using namespace std;
 
