@@ -6,6 +6,8 @@
 // Description : Connected Components in Parallel
 //============================================================================
 
+//#define USE_MPI
+
 #include "RandomGraph.h"
 #include "Bfs.cpp"
 #include "Boost.cpp"
@@ -32,7 +34,9 @@
 #include <stdexcept>   // for exception, runtime_error, out_of_range
 #include <unordered_map>
 #include <omp.h>
+#ifdef USE_MPI
 #include <mpi.h>
+#endif
 
 #include <emmintrin.h>
 
@@ -110,7 +114,7 @@ int readGraphFile(const string& fileName, vector<pair<int, int> > &outEdges) {
  * Returns the arguments found in input.txt.
  */
 void readArguments(int* argc, vector<string> &args) {
-	cout << "reading arguments from input.txt" << endl;
+	//cout << "reading arguments from input.txt" << endl;
 	ifstream myfile("input.txt");
 	if (!myfile.is_open()) return;
 
@@ -122,7 +126,7 @@ void readArguments(int* argc, vector<string> &args) {
 		{
 			iss >> sub;
 			args[i++] = sub;
-		} while (iss);
+		} while (iss && i < 100);
 	}
 	myfile.close();
 	*argc = i - 1;
@@ -179,9 +183,11 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 		Boost cc;
 		nrComponents = cc.run(vertexCount, edges, vertexToComponent, stopWatch);
 	} else if (alg == 4) {// pboost
+#ifdef USE_MPI
 		if (mpiProcessRank == 0) cout << "pboost\n";
 		PBoost cc;
 		nrComponents = cc.run(vertexCount, edges, vertexToComponent, stopWatch);
+#endif
 	} else if (alg == 5) {// pbfs
 		cout << "pbfs\n";
 		OpenMPCC cc;
@@ -215,7 +221,9 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 //}
 
 int main(int argc, char* arg[]) {
+#ifdef USE_MPI
 	MPI_Init(0,0);
+#endif
 
 	vector<string> argv(100);
 	if (argc <= 1) {
@@ -319,8 +327,10 @@ int main(int argc, char* arg[]) {
 		}
 	}
 
+#ifdef USE_MPI
 	MPI_Comm_size(MPI_COMM_WORLD, &mpiThreadCount);
 	MPI_Comm_rank (MPI_COMM_WORLD, &mpiProcessRank);
+#endif
 	StopWatch stopWatch;
 
 
@@ -342,7 +352,9 @@ int main(int argc, char* arg[]) {
 		}
 		if (mpiThreadCount > 1) {
 			// multiple processes. need to brodcast vertexCount
+#ifdef USE_MPI
 			MPI_Bcast(&vertexCount, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
 		}
 		std::vector<int> vertexToComponent(vertexCount, -1);
 
@@ -385,8 +397,10 @@ int main(int argc, char* arg[]) {
 			}
 			if (mpiThreadCount > 1) {
 				// multiple processes. need to brodcast vertexCount
+#ifdef USE_MPI
 				MPI_Bcast(&vertexCount, 1, MPI_INT, 0, MPI_COMM_WORLD);
-			}
+#endif
+				}
 
 			for (int j = 0; j < repetitions; j++) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
@@ -440,6 +454,7 @@ int main(int argc, char* arg[]) {
 
 
 //#ifdef __linux__
+#ifdef USE_MPI
 	MPI_Barrier(MPI_COMM_WORLD);
 	// for memory measurements
 	ifstream statusFile("/proc/self/status");
@@ -492,6 +507,7 @@ int main(int argc, char* arg[]) {
 	statusFile.close();
 //#endif
 	MPI_Finalize();
+#endif
 
 	return 0;
 }
