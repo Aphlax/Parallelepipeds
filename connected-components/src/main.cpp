@@ -16,6 +16,7 @@
 #include "RandomizedContract.cpp"
 #include "PRandomizedContract.cpp"
 #include "pBfsAtomic.cpp"
+#include "pBfsAtomic2.cpp"
 #include "ObjConverter.cpp"
 #include "StopWatch.cpp"
 
@@ -197,6 +198,10 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 		cout << "pbfsatomic\n";
 		PBfsAtomic cc;
 		nrComponents = cc.run(vertexCount, edges, vertexToComponent, stopWatch);
+	} else if (alg == 9) {// pbfsatomic2
+		cout << "pbfsatomic2\n";
+		PBfsAtomic2 cc;
+		nrComponents = cc.run(vertexCount, edges, vertexToComponent, stopWatch);
 	}
 
 	//----------------------------------------------
@@ -249,6 +254,8 @@ int main(int argc, char* arg[]) {
 			alg = 7;
 		else if (!argv[i].compare("pbfsatomic"))
 			alg = 8;
+		else if (!argv[i].compare("pbfsatomic2"))
+			alg = 9;
 		else if (!argv[i].compare("-g")) {// graph selection
 			if (++i < argc)
 				fileName = argv[i];
