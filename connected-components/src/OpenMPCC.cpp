@@ -39,7 +39,7 @@ class OpenMPCC {
 			mergeMapArray[tn] = mergeMap;
 			std::queue<int> q;
 			//#pragma omp for
-			for (int i = tn*workLoad; i < (tn+1)*workLoad; ++i) {
+			for (int i = tn*workLoad; i < (tn + 1 == nt ? size : (tn+1)*workLoad); ++i) {
 				if (outVertexToComponent[i] >= 0) continue;
 				beginningNode.push_back(i);
 				q.push(i);
