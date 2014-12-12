@@ -17,6 +17,7 @@
 #include "SpanningTreeCC.cpp"
 #include "RandomizedContract.cpp"
 #include "PRandomizedContract.cpp"
+#include "PBfs.cpp"
 #include "pBfsAtomic.cpp"
 #include "pBfsAtomic2.cpp"
 #include "ObjConverter.cpp"
@@ -190,7 +191,7 @@ bool runAlgo(int alg, int vertexCount, vector<pair<int, int> > &edges, vector<in
 #endif
 	} else if (alg == 5) {// pbfs
 		cout << "pbfs\n";
-		OpenMPCC cc;
+		PBfs cc;
 		nrComponents = cc.run(vertexCount, edges, vertexToComponent, stopWatch);
 	} else if (alg == 6) {// pstree
 		cout << "pstree\n";

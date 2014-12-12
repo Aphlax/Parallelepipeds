@@ -31,6 +31,7 @@ inline void unio(vector<int> &comp, int u, int v) {
 }
 
 int SerialUnionFind::run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent, StopWatch &stopWatch) {
+	stopWatch.start(stopWatch.mainSection);
 	int n = numberOfVertices;
 	int m = edges.size();
 	vector<int> comp(n);
@@ -39,7 +40,6 @@ int SerialUnionFind::run(const int numberOfVertices, const std::vector<std::pair
 		comp[i] = i;
 	}
 
-	stopWatch.start(stopWatch.mainSection);
 	for (int i = 0; i < m; i++) {
 		int u = edges[i].first;
 		int v = edges[i].second;

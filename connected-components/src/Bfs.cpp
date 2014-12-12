@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include <queue>
+#include <stack>
 #include <vector>
 #include "StopWatch.cpp"
 
@@ -18,23 +18,20 @@ class Bfs {
 		stopWatch.start(stopWatch.mainSection);
 
 		int componentCount = 0;
+		stack<int> s;
 		for (unsigned int i = 0; i < graph.size(); ++i) {
 			if (outVertexToComponent[i] >= 0) continue;
-
-			int curComponentSize = 0;
-			queue<int> q;
-			q.push(i);
-			while(!q.empty()) {
-				int cur = q.front();
-				q.pop();
+			s.push(i);
+			while(!s.empty()) {
+				int cur = s.top();
+				s.pop();
 				if (outVertexToComponent[cur] >= 0) continue;
 				outVertexToComponent[cur] = componentCount;
-				++curComponentSize;
 
 				for (unsigned int j = 0; j < graph[cur].size(); ++j) {
 					int next = graph[cur][j];
 					if (outVertexToComponent[next] >= 0) continue;
-					q.push(next);
+					s.push(next);
 				}
 			}
 			++componentCount;
