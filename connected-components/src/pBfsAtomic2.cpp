@@ -1,6 +1,6 @@
 // g++ main.cpp BoostCC.cpp RandomGraph.cpp SerialConnectedComponents.cpp openMPCC.cpp -fopenmp
 
-
+//time pbfsatomic2, graph04, takes 18 sec.
 #include <vector>
 #include <omp.h>
 #include <cmath>
@@ -14,9 +14,7 @@
 #include <atomic>
 #include "StopWatch.cpp"
 
-
 using namespace std;
-using namespace boost;
 
 class PBfsAtomic2 {
 	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent, StopWatch &stopWatch) {
@@ -37,29 +35,53 @@ class PBfsAtomic2 {
 		stopWatch.stop(stopWatch.inputProcessing);
 		stopWatch.start(stopWatch.mainSection);
 
+
 		#pragma omp parallel for
 		for (unsigned int i = 0; i < graph.size(); ++i) {
-			if (vertexToComponentAtomic[i].load() >= 0) continue;
+			if(vertexToComponentAtomic[i].load()!=-1)continue;
+			//vertexToComponentAtomic[i].store(i);
+			//if(vertexToComponentAtomic[i].load()!=i)continue;
+			int testValue = -1;
+			if(!vertexToComponentAtomic[i].compare_exchange_strong(testValue,i,std::memory_order_relaxed))continue;
 			std::queue<int> q;
 			q.push(i);
 			int compMark = i;
-			vertexToComponentAtomic[i].store(compMark);
 			bool compAlreadyTaken = false;
 			while(!q.empty() && !compAlreadyTaken) {
 				int cur = q.front(); q.pop();
-
 				for (unsigned int j = 0; j < graph[cur].size(); ++j) {
 					int next = graph[cur][j];
-					int vertexMark = vertexToComponentAtomic[next].load();
-					if (vertexMark!=-1 && vertexMark < compMark)
+					int nextMark;
+					testValue =-1;
+
+					//vertex is set and component has smaller index than compMark ==> abort
+					if ((nextMark = vertexToComponentAtomic[next].load()) < compMark && nextMark!=-1)
 					{
 						compAlreadyTaken = true;
 						break;
 					}
-					else if(vertexMark!= compMark)
+					//vertex is not set yet
+					else if(vertexToComponentAtomic[next].compare_exchange_strong(testValue,compMark,std::memory_order_relaxed))
 					{
-						vertexToComponentAtomic[next].store(compMark);
 						q.push(next);
+					}
+					//vertex is (hopefully) higher, try setting your (lower) index (overtaking that component)
+					else
+					{
+						bool exchanged=false;
+						do
+						{
+							nextMark = vertexToComponentAtomic[next].load();
+							if(compMark<nextMark)
+							{
+								if((exchanged = vertexToComponentAtomic[next].compare_exchange_strong(nextMark,compMark,std::memory_order_relaxed)))
+								{
+									q.push(next);
+								}
+							}
+							else
+								exchanged=true;
+						}while(!exchanged);
 					}
 				}
 			}
