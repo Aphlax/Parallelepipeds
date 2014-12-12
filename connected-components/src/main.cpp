@@ -112,12 +112,15 @@ int readGraphFile(const string& fileName, vector<pair<int, int> > &outEdges) {
 }
 
 /**
- * Returns the arguments found in input.txt.
+ * Returns the arguments found in input.txt. (Do only use on server)
  */
 void readArguments(int* argc, vector<string> &args) {
-	//cout << "reading arguments from input.txt" << endl;
-	ifstream myfile("input.txt");
-	if (!myfile.is_open()) return;
+	ifstream myfile("/mnt/hostfs/dphpc19/input.txt");
+	if (!myfile.is_open()) {
+		cout << "No input file found" << endl;
+		*argc = 1;
+		return;
+	}
 
 	int i = 0;
 	string line, sub;
@@ -454,8 +457,8 @@ int main(int argc, char* arg[]) {
 	}
 
 
-//#ifdef __linux__
 #ifdef USE_MPI
+//#ifdef __linux__
 	MPI_Barrier(MPI_COMM_WORLD);
 	// for memory measurements
 	ifstream statusFile("/proc/self/status");
