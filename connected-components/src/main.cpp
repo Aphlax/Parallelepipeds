@@ -18,7 +18,7 @@
 #include "RandomizedContract.cpp"
 #include "PRandomizedContract.cpp"
 #include "PBfs.cpp"
-#include "pBfsAtomic.cpp"
+#include "PBfsAtomic.cpp"
 #include "pBfsAtomic2.cpp"
 #include "ObjConverter.cpp"
 #include "StopWatch.cpp"

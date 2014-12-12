@@ -1,16 +1,17 @@
 
 #include <iostream>
-#include <stack>
+#include <queue>
 #include <vector>
 #include <unordered_map>
 #include <set>
 #include <map>
 #include <omp.h>
+#include <atomic>
 #include "StopWatch.cpp"
 
 using namespace std;
 
-class PBfs {
+class PBfsAtomic {
 public:
 
 
@@ -23,23 +24,7 @@ public:
 		}
 		stopWatch.stop(stopWatch.inputProcessing);
 
-		runBfs(numberOfVertices, graph, outVertexToComponent, stopWatch, -1);
-
-		// correctness check
-		bool incorrect = false;
-		#pragma omp parallel for default(none) shared(edges, outVertexToComponent, incorrect)
-		for (unsigned int i = 0; i < edges.size(); ++i) {
-			if (outVertexToComponent[edges[i].first] != outVertexToComponent[edges[i].second]) {
-				incorrect = true;
-			}
-		}
-		// correctness safeguard
-		if (incorrect) {
-			cout << "Parallel processing yielded incorrect result. Re-running with 1 thread\n";
-			#pragma omp parallel for default(none) shared(outVertexToComponent)
-			for (unsigned int i = 0; i < outVertexToComponent.size(); ++i) outVertexToComponent[i] = -1;
-			runBfs(numberOfVertices, graph, outVertexToComponent, stopWatch, 1);
-		}
+		runBfs(numberOfVertices, graph, outVertexToComponent, stopWatch);
 
 		return 0;
 	}
@@ -47,28 +32,24 @@ public:
 
 private:
 
-	void runBfs(const int numberOfVertices, const std::vector<std::vector<int> > &graph, std::vector<int> &outVertexToComponent, StopWatch &stopWatch, int maxThreads) {
-		int prevMaxThreads = omp_get_max_threads();
-		if (maxThreads != -1) {
-			omp_set_num_threads(maxThreads);
-		}
-
+	void runBfs(const int numberOfVertices, const std::vector<std::vector<int> > &graph, vector<int> &outVertexToComponent, StopWatch &stopWatch) {
+		std::atomic_flag atomicFlags[numberOfVertices];
 		stopWatch.start(stopWatch.mainSection);
 		std::vector<std::unordered_map<int, int> > componentHits(omp_get_max_threads(), std::unordered_map<int, int>());
-		#pragma omp parallel default(none) shared(graph, componentHits, outVertexToComponent)
+		#pragma omp parallel default(none) shared(graph, componentHits, outVertexToComponent, atomicFlags)
 		{
 			int tn = omp_get_thread_num();
 
-			stack<int> s;
+			queue<int> q;
 			int componentCount = tn * numberOfVertices;
 			#pragma omp for
 			for (unsigned int i = 0; i < graph.size(); ++i) {
 				if (outVertexToComponent[i] >= 0) continue;
-				s.push(i);
+				q.push(i);
 				bool marked1 = false;
-				while (!s.empty()) {
-					int cur = s.top();
-					s.pop();
+				while (!q.empty()) {
+					int cur = q.front();
+					q.pop();
 					int curComponent = outVertexToComponent[cur];
 					if (curComponent == componentCount) continue;
 					else if (curComponent >= 0) {
@@ -77,6 +58,12 @@ private:
 						addToMap(componentHits[tn], curComponent, componentCount);
 						continue;
 					}
+
+					if (atomicFlags[cur].test_and_set()) {
+						// already set, push back vertex and try again later
+						q.push(cur);
+					}
+
 					marked1 = true;
 					outVertexToComponent[cur] = componentCount;
 
@@ -84,7 +71,7 @@ private:
 						int next = graph[cur][j];
 						if (outVertexToComponent[next] == componentCount)
 							continue;
-						s.push(next);
+						q.push(next);
 					}
 				}
 				if (marked1)
@@ -98,10 +85,6 @@ private:
 			for (std::unordered_map<int, int>::iterator it = componentHits[i].begin(); it != componentHits[i].end(); ++it) {
 				addToMap(map, it->first, it->second);
 			}
-		}
-
-		if (maxThreads != -1) {
-			omp_set_num_threads(prevMaxThreads);
 		}
 
 		#pragma omp parallel for default(none) shared(graph, componentHits, outVertexToComponent, map)
