@@ -24,7 +24,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-//#include <iomanip>
+#include <iomanip>
 #include <string>
 #include <ctype.h>
 #include <cstdlib>
@@ -363,8 +363,9 @@ int main(int argc, char* arg[]) {
 	} else if (testG.size() != 0) { // test with various sized graphs
 
 		int sol = 0, pos = -1;
-		vector<double> timeMain(testG.size());
-		vector<double> timeMerge(testG.size());
+		vector<vector<double> > timeInput(testP.size(), vector<double>());
+		vector<vector<double> > timeMain(testG.size(), vector<double>());
+		vector<vector<double> > timeMerge(testG.size(), vector<double>());
 		if (testFiles) {
 			pos = fileName.find("#");
 			if (pos == -1 || pos == ((int)fileName.length()) - 1) {
@@ -396,22 +397,21 @@ int main(int argc, char* arg[]) {
 				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, stopWatch);
 				if (mpiProcessRank == 0)
 				{
-					timeMain[i] += stopWatch.mainSectionTime;
-					timeMerge[i] += stopWatch.mergingTime;
+					timeInput[i].push_back(stopWatch.inputProcessing);
+					timeMain[i].push_back(stopWatch.mainSectionTime);
+					timeMerge[i].push_back(stopWatch.mergingTime);
 				}
 			}
-			if (mpiProcessRank == 0)
-			{
-				timeMain[i] = timeMain[i] / repetitions;
-				timeMerge[i] = timeMerge[i] / repetitions;
-			}
 		}
+
 		if (mpiProcessRank == 0)  {
-			cout << "Timings: \n";
-			cout << "\t Main:  \t Merge:\n";
+			cout << "Timings for different graphs: \n";
+			cout << "Graph:  Input:\t\tMain:\t\tMerge:\n";
+			cout << setiosflags(ios::fixed) << setprecision(9);
 			for (unsigned int i = 0; i < testG.size(); i++) {
-				cout << "\t" << timeMain[i] << "\t" << timeMerge[i] << "\n";
-			}
+				for (unsigned int j = 0; j < timeInput[i].size(); j++) {
+					cout << i << "\t" << timeInput[i][j] << "\t" << timeMain[i][j] << "\t" << timeMerge[i][j] << "\n";
+				}			}
 			cout << endl;
 		}
 
@@ -432,8 +432,9 @@ int main(int argc, char* arg[]) {
 				timeMerge[i].push_back(stopWatch.mergingTime);
 			}
 		}
-		cout << "Timings: \n";
-		cout << "Thread: \tInput: \tMain:  \tMerge:\n";
+		cout << "Timings for different number of threads: \n";
+		cout << "Thread: Input:\t\tMain:\t\tMerge:\n";
+		cout << setiosflags(ios::fixed) << setprecision(9);
 		for (unsigned int i = 0; i < testP.size(); i++) {
 			for (unsigned int j = 0; j < timeInput[i].size(); j++) {
 				cout << i << "\t" << timeInput[i][j] << "\t" << timeMain[i][j] << "\t" << timeMerge[i][j] << "\n";
