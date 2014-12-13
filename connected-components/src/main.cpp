@@ -433,10 +433,10 @@ int main(int argc, char* arg[]) {
 			}
 		}
 		cout << "Timings: \n";
-		cout << "\t Main:  \t Merge:\n";
+		cout << "Thread: \tInput: \tMain:  \tMerge:\n";
 		for (unsigned int i = 0; i < testP.size(); i++) {
-			for (unsigned int j = 0; j < testP[i].size(); j++) {
-				cout << "\t" << i << "\t" << timeInput[i][j] << "\t" << timeMain[i][j] << "\t" << timeMerge[i][j] << "\n";
+			for (unsigned int j = 0; j < timeInput[i].size(); j++) {
+				cout << i << "\t" << timeInput[i][j] << "\t" << timeMain[i][j] << "\t" << timeMerge[i][j] << "\n";
 			}
 		}
 		cout << endl;
