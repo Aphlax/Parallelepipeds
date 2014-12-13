@@ -7,12 +7,10 @@
 #include <iostream>
 #include <queue>
 #include <set>
-#include <boost/lockfree/queue.hpp>
 #include <tuple>
 #include "StopWatch.cpp"
 
 using namespace std;
-using namespace boost;
 
 class OpenMPCC {
 	public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &outVertexToComponent, StopWatch &stopWatch) {
