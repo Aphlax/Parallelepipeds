@@ -7,7 +7,6 @@
 #include <iostream>
 #include <queue>
 #include <set>
-#include <boost/lockfree/queue.hpp>
 #include <tuple>
 #include <ctime>
 #include <chrono>
