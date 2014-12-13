@@ -418,24 +418,26 @@ int main(int argc, char* arg[]) {
 	} else { // testP nonempty, test with different amounts of threads
 		// this assumes non-mpi, no need to put mpi checks
 		int sol = 10;
-		vector<double> timeMain(testP.size());
-		vector<double> timeMerge(testP.size());
+		vector<vector<double> > timeInput(testP.size(), vector<double>());
+		vector<vector<double> > timeMain(testP.size(), vector<double>());
+		vector<vector<double> > timeMerge(testP.size(), vector<double>());
 		vertexCount = readGraphFile(fileName, edges);
 		for (unsigned int i = 0; i < testP.size(); i++) {
 			omp_set_num_threads(testP[i]);
 			for (int j = 0; j < repetitions; j++) {
 				std::vector<int> vertexToComponent(vertexCount, -1);
 				runAlgo(alg, vertexCount, edges, vertexToComponent, sol, stopWatch);
-				timeMain[i] += stopWatch.mainSectionTime;
-				timeMerge[i] += stopWatch.mergingTime;
+				timeInput[i].push_back(stopWatch.inputProcessing);
+				timeMain[i].push_back(stopWatch.mainSectionTime);
+				timeMerge[i].push_back(stopWatch.mergingTime);
 			}
-			timeMain[i] = timeMain[i] / repetitions;
-			timeMerge[i] = timeMerge[i] / repetitions;
 		}
 		cout << "Timings: \n";
 		cout << "\t Main:  \t Merge:\n";
 		for (unsigned int i = 0; i < testP.size(); i++) {
-			cout << "\t" << timeMain[i] << "\t" << timeMerge[i] << "\n";
+			for (unsigned int j = 0; j < testP[i].size(); j++) {
+				cout << "\t" << i << "\t" << timeInput[i][j] << "\t" << timeMain[i][j] << "\t" << timeMerge[i][j] << "\n";
+			}
 		}
 		cout << endl;
 
