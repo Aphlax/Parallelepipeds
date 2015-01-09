@@ -53,8 +53,8 @@ RandomGraph::RandomGraph(const std::vector<int> &sizeOfEachComponent, const doub
 		}
 
 		int componentEdgeCount = notConnected.size();
-		int targetEdgeCount = min((int) (averageConnectivity * cn),	(cn * (cn - 1)) / 2);
-
+		long targetEdgeCount = min((long) (averageConnectivity * cn),	((long)cn * ((long)(cn - 1))) / 2);
+//		cout << "target: " << targetEdgeCount << endl;
 		while (componentEdgeCount < targetEdgeCount) {
 			int r1 = rand() % cn + componentStart; // random vertex
 			int r2 = rand() % cn + componentStart; // random vertex
