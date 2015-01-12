@@ -46,7 +46,6 @@ public:
 		#pragma omp parallel shared(strees, streeSize, resultComp, resultSize)
 		{
 			// Initialisation
-
 			const int p = omp_get_num_threads();
 			const int id = omp_get_thread_num();
 			int round = 2;
@@ -62,7 +61,6 @@ public:
 				strees = vector<vector< pair< int, int > >* >(p, nullptr);
 				streeSize = vector<int>(p, -1);
 			}
-
 			#pragma omp barrier // First round
 
 			{
@@ -90,7 +88,6 @@ public:
 			}
 
 			// All other rounds
-
 			for (; round < 2 * p; round *= 2) {
 				if (id % round == 0) {
 					#pragma omp barrier
@@ -126,7 +123,6 @@ public:
 					break;
 				}
 			}
-
 			// those who fell out before the final round still have to wait for barriers
 			for (; round < 2 * p; round *= 2) {
 				#pragma omp barrier
@@ -134,11 +130,11 @@ public:
 
 			// Thread 0 has the results
 			if (id == 0) {
+				#pragma omp barrier // free waiting threads
 				resultComp = comp;
 				resultSize = n - streeCount;
 			}
 		}//end omp parallel
-
 		for (int i = 0; i < n; i++) {
 			outVertexToComponent[i] = find(resultComp, i);
 		}

@@ -13,6 +13,39 @@ using namespace std;
 
 class PRandomizedContract {
 
+private:
+
+const int baseLength = 10000;
+
+public: int parallelPrefixSum(vector<int> &v, const int begin, const int end) {
+		int length = end - begin;
+		int mid = begin + length / 2;
+		int sum = 0;
+
+		if (length <= baseLength) {
+			for (int ii = begin + 1; ii < end; ii++) {
+				v[ii] += v[ii - 1];
+			}
+		} else {
+			#pragma omp task shared(sum, v)
+			{
+				sum = parallelPrefixSum(v, begin, mid);
+			}
+			#pragma omp task shared(v)
+			{
+				parallelPrefixSum(v, mid, end);
+			}
+			#pragma omp taskwait
+
+			#pragma omp parallel for
+			for (int ii = mid; ii < end; ii++) {
+				v[ii] += sum;
+			}
+
+		}
+		return v[end - 1];
+	}
+
 public: int run(const int numberOfVertices, const std::vector<std::pair<int,int> > &edges, std::vector<int> &L, StopWatch &stopWatch) {
 	stopWatch.start(stopWatch.inputProcessing);
 	const int HEAD = 0;
@@ -21,7 +54,9 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 	vector<int> headOrTail = vector<int>(numberOfVertices, -1); // head or tail
 	vector<int> headOrTailIteration = vector<int>(numberOfVertices, -1); // head or tail
 
+	vector<int> S = vector<int>(edges.size(), -1); // head or tail
 	vector<pair<int,int> > E = vector<pair<int,int> >(edges.size(), pair<int, int>(-1,-1));
+	vector<pair<int,int> > E_tmp = vector<pair<int,int> >(edges.size(), pair<int, int>(-1,-1));
 
 	#pragma omp parallel for default(none) shared(E, edges)
 	for (unsigned int i = 0; i < edges.size(); ++i) E[i] = pair<int, int>(edges[i]);
@@ -33,9 +68,7 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 	int edgesLeft = edges.size();
 
 	vector<unsigned int> seeds = vector<unsigned int>(omp_get_max_threads());
-	stack<pair<int,int> > s;
-	vector<vector<pair<int,int> > > contractedEdges = vector<vector<pair<int,int> > >(omp_get_max_threads(), vector<pair<int,int> >(0));
-	vector<vector<int> > contractedEdgesInIteration = vector<vector<int> >(omp_get_max_threads(), vector<int>(0));
+	stack<vector<vector<pair<int,int> > > > s;
 	for (int i = 0; i < omp_get_max_threads(); ++i) seeds[i] = i;
 
 	stopWatch.stop(stopWatch.inputProcessing);
@@ -82,139 +115,63 @@ public: int run(const int numberOfVertices, const std::vector<std::pair<int,int>
 			}
 		}
 
-////		OPTION 1 --------------------------------------------------------------------------------------------------------------------------------------
-//		std::atomic<int> nonContractedEdgeCount(0);
-//		#pragma omp parallel for default(none) shared(edgesLeft, E, headOrTail, L, contractedEdges, contractedEdgesInIteration, nonContractedEdgeCount)
-//		for (int i = 0; i < edgesLeft; ++i) {
-//			int u = E[i].first;
-//			int v = E[i].second;
-//			if (L[u] != L[v]) {
-//				int curCount = nonContractedEdgeCount.fetch_add(1);
-//				E[curCount].first = L[u];
-//				E[curCount].second = L[v];
-//			}
-//		}
-//		edgesLeft = nonContractedEdgeCount;
-//
-//		for (int i = 0; i < edgesLeft; ++i) {
-//			int u = E[i].first;
-//			int v = E[i].second;
-//			if (L[u] == L[v]) {
-//				if (headOrTail[u] == TAIL && headOrTail[v] == HEAD) {
-//					s.push(pair<int,int>(v,u));
-//				} else if (headOrTail[u] == HEAD && headOrTail[v] == TAIL) {
-//					s.push(pair<int,int>(u,v));
-//				}
-//			}
-//		}
+		vector<vector<pair<int,int> > > aux(omp_get_max_threads(), vector<pair<int,int> >());
 
-////		OPTION 2 --------------------------------------------------------------------------------------------------------------------------------------
-//		#pragma omp parallel default(none) shared(edgesLeft, E, headOrTail, L, contractedEdges, contractedEdgesInIteration)
-//		{
-//			contractedEdgesInIteration[omp_get_thread_num()].push_back(0);
-//			#pragma omp for nowait
-//			for (int i = 0; i < edgesLeft; ++i) {
-//				int u = E[i].first;
-//				int v = E[i].second;
-//				if (L[u] == L[v]) {
-//					if (headOrTail[u] == TAIL && headOrTail[v] == HEAD) {
-//						contractedEdges[omp_get_thread_num()].push_back(pair<int,int>(v,u));
-//						++contractedEdgesInIteration[omp_get_thread_num()].back();
-//					} else if (headOrTail[u] == HEAD && headOrTail[v] == TAIL) {
-//						contractedEdges[omp_get_thread_num()].push_back(pair<int,int>(u,v));
-//						++contractedEdgesInIteration[omp_get_thread_num()].back();
-//					}
-//
-//				}
-//			}
-//		}
-//		int nonContractedEdgeCount = 0;
-//		for (int i = 0; i < edgesLeft; ++i) {
-//			int u = E[i].first;
-//			int v = E[i].second;
-//			if (L[u] != L[v]) {
-//				int curCount = nonContractedEdgeCount;
-//				E[curCount].first = L[u];
-//				E[curCount].second = L[v];
-//				++nonContractedEdgeCount;
-//			}
-//		}
-//		edgesLeft = nonContractedEdgeCount;
-
-
-//		OPTION 3 --------------------------------------------------------------------------------------------------------------------------------------
-		int nonContractedEdgeCount = 0;
+		#pragma omp parallel for default(none) shared(edgesLeft, E, E_tmp, headOrTail, L, S, s, aux)
 		for (int i = 0; i < edgesLeft; ++i) {
+			E_tmp[i] = E[i];
 			int u = E[i].first;
 			int v = E[i].second;
-			if (L[u] != L[v]) {
-				int curCount = nonContractedEdgeCount;
-				E[curCount].first = L[u];
-				E[curCount].second = L[v];
-				++nonContractedEdgeCount;
-			} else {
+			if (L[u] == L[v]) {
 				if (headOrTail[u] == TAIL && headOrTail[v] == HEAD) {
-					s.push(pair<int,int>(v,u));
+					aux[omp_get_thread_num()].push_back(pair<int,int>(v,u));
 				} else if (headOrTail[u] == HEAD && headOrTail[v] == TAIL) {
-					s.push(pair<int,int>(u,v));
+					aux[omp_get_thread_num()].push_back(pair<int,int>(u,v));
 				}
+				S[i] = 0;
+			} else {
+				S[i] = 1;
 			}
 		}
-		edgesLeft = nonContractedEdgeCount;
 
-////		OPTION 4 --------------------------------------------------------------------------------------------------------------------------------------
-//		std::atomic<int> nonContractedEdgeCount(0);
-//		#pragma omp parallel default(none) shared(edgesLeft, E, headOrTail, L, nonContractedEdgeCount, contractedEdges, contractedEdgesInIteration)
-//		{
-//			contractedEdgesInIteration[omp_get_thread_num()].push_back(0);
-//			#pragma omp for
-//			for (int i = 0; i < edgesLeft; ++i) {
-//				int u = E[i].first;
-//				int v = E[i].second;
-//				if (L[u] != L[v]) {
-//					int curCount = nonContractedEdgeCount.fetch_add(1);
-//					E[curCount].first = L[u];
-//					E[curCount].second = L[v];
-//				} else {
-//					if (headOrTail[u] == TAIL && headOrTail[v] == HEAD) {
-//						contractedEdges[omp_get_thread_num()].push_back(pair<int,int>(v,u));
-//						++contractedEdgesInIteration[omp_get_thread_num()].back();
-//					} else if (headOrTail[u] == HEAD && headOrTail[v] == TAIL) {
-//						contractedEdges[omp_get_thread_num()].push_back(pair<int,int>(u,v));
-//						++contractedEdgesInIteration[omp_get_thread_num()].back();
-//					}
-//
-//				}
-//			}
-//		}
-//		edgesLeft = nonContractedEdgeCount;
+		s.push(aux);
+
+//		parallelPrefixSum(S, 0, edgesLeft); // << serial is faster than parallel
+		for (int i = 1; i < edgesLeft; ++i) {
+			S[i] += S[i-1];
+		}
 
 
-//			cout << "L - ";
-//			for (int i = 0; i < numberOfVertices; ++i) cout << i << ":" << L[i] << ", ";
-//			cout << endl << "iterate " << endl;
+		#pragma omp parallel for default(none) shared(edgesLeft, E, E_tmp, L, S)
+		for (int i = 0; i < edgesLeft; ++i) {
+			int u = E_tmp[i].first;
+			int v = E_tmp[i].second;
+			if (L[u] != L[v]) {
+				E[S[i]-1].first = L[u];
+				E[S[i]-1].second = L[v];
+			}
+		}
+		edgesLeft = S[edgesLeft-1];
 
 	}
 
-	//vector<int> contractedEdgeCounter = vector<int>(omp_get_max_threads(), 0);
-	//for (int i = contractedEdgesInIteration.size() - 1; i >= 0; --i) {
+	stopWatch.stop(stopWatch.mainSection);
+	stopWatch.start(stopWatch.merging);
 
 
 	while (!s.empty()) {
-		pair<int,int> e = s.top();
+		vector<vector<pair<int,int> > > e = s.top();
 		s.pop();
-		L[e.second] = L[e.first];
+		#pragma omp parallel default(none) shared(e, L)
+		{
+			int tn = omp_get_thread_num();
+			for (unsigned int j = 0; j < e[tn].size(); j++) {
+				L[e[tn][j].second] = L[e[tn][j].first];
+			}
+		}
 	}
 
-//	while (!s.empty()) {
-//		pair<int,int> e = s.top();
-//		s.pop();
-//		L[e.second] = L[e.first];
-//	}
-
-	stopWatch.stop(stopWatch.mainSection);
-
-
+	stopWatch.stop(stopWatch.merging);
 	return 0;
 }
 };
